@@ -1,0 +1,32 @@
+<!doctype html>
+<!--
+  v4.3.1 Offscreen Document（借鉴 FetchV offscreen 模式）
+  ------------------------------------------------------------
+  用途：在 MV3 Service Worker 之外提供"长生命周期 DOM 环境"，
+        用于处理需要 Blob/URL API 的媒体合并任务。
+
+  硬约束（与 FetchV 区别）：
+  - 本文件 **不发起任何外部网络请求**（不 fetch 外部 URL）
+  - 仅处理由 SW 通过 message 传入的 blob: URL（来自本扩展捕获的 MSE 数据）
+  - 输出仍为 blob: URL，回传给 SW，由 SW 决定落盘或转发
+  - 隐私零外泄：不读 Cookie/UA，不上传任何字节
+
+  当前能力：
+  - OFFSCREEN_MERGE_BLOBS   合并多个 blob URL 为单个 blob URL
+
+  未来扩展点（预留，未启用）：
+  - OFFSCREEN_REMUX_TS      TS blob → MP4 blob（迁移 download.html 的转封装）
+  - OFFSCREEN_DUMP_MP4      mp4box 分析（替代 content-script 内联分析）
+
+  注：本页面 CSP 继承 manifest 的 extension_pages 策略，
+      script-src 'self'，禁止 inline/eval，禁止外部脚本。
+-->
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>VideoSniffer Offscreen</title>
+</head>
+<body>
+  <script src="offscreen.js"></script>
+</body>
+</html>
