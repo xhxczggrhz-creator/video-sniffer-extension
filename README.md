@@ -2,7 +2,15 @@
 
 > 浏览器 MV3 扩展：自动嗅探网页视频，多线程高速下载（aria2 动态分段技术），支持流媒体（HLS/DASH）、MSE 拦截捕获、音视频轨合并与录制。
 
-**版本：4.3.17 ｜ 纯 HTTP 直连，无 P2P / BT / 磁力，完全隐私。**
+**版本：4.3.18 ｜ 纯 HTTP 直连，无 P2P / BT / 磁力，完全隐私。**
+
+---
+
+## 文档
+
+- [CHANGELOG.md](CHANGELOG.md)：版本更新历史
+- [SECURITY.md](SECURITY.md)：安全政策与漏洞报告
+- [PRIVACY.md](PRIVACY.md)：隐私承诺
 
 ---
 
@@ -51,7 +59,9 @@ video-sniffer-extension/
 ├── download-page/                 # 下载页面（多线程下载引擎 UI / 转封装 / 合并）
 ├── popup/                         # 扩展弹窗
 ├── offscreen/                     # Offscreen 文档
-├── tests/                         # 回归/单测（node --check 语法校验 + 专项测试）
+├── scripts/                       # 工程脚本（check-js 语法门禁 / package 打包+校验和）
+├── tests/                         # 回归/单测（test-validate / test-merger / test-ssrf-p03 等）
+├── .github/                       # Issue/PR 模板 + CI workflow
 └── icons/                         # 图标
 ```
 
@@ -60,13 +70,11 @@ video-sniffer-extension/
 ## 开发与测试
 
 ```bash
-# 语法校验全部 JS
-node --check background/service-worker.js
-node --check content/*.js lib/*.js download-page/download.js
-
-# 专项回归（详见各测试文件头部说明）
-node tests/test-engine-v3.js
-node tests/test-merger.js
+npm install          # 项目无运行时依赖，仅用于启用 npm scripts
+npm run lint         # 语法门禁：全部手写 JS（自动区分 ESM/CJS）
+npm test             # 单元回归：test-validate + test-merger
+npm run test:security   # 安全回归：P0-3 SSRF 字面量绕过防护
+npm run package      # 产 dist/video-sniffer-<version>.zip + SHA256
 ```
 
 ---

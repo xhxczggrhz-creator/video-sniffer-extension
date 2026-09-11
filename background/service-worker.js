@@ -163,7 +163,11 @@ async function dnsSafeUrl(url) {
     // IP 字面量不做二次解析（已由 isSafeUrl 按字面判定）
     if (/^(?:\d{1,3}\.){3}\d{1,3}$/.test(host)) return isSafeUrl(url);
     if (/^([0-9a-f:]+)$/i.test(host)) return isSafeUrl(url);
-    if (!chrome?.dns?.resolve) return true;      // dns 权限未授予 → 跳过解析
+    // v4.3.18 P0-2 如实标注：chrome.dns 是 Dev/Beta 渠道专属 API，稳定版 Chrome
+    // 完全不注入（连权限页都查不到 dns 权限），因此此处将恒定返回 true → 本 DNS
+    // 复查链在生产稳定版上整条失效。这是「浏览器 API 能力边界」，非代码缺陷：
+    // 真正兜底的是 isSafeUrl 的字面 IP 私有段拦截 + 浏览器自身 fetch/Secure DNS。
+    if (!chrome?.dns?.resolve) return true;      // Dev/Beta 外平台无此 API → 退化放行，仅靠字面拦截
 
     // v4.2.7：命中缓存直接返回（同一 CDN host 数百次分段下载只解析一次）
     // v4.2.9：超时结果走 60s 短负缓存 —— 安全不降级（依旧拒绝），只是同一
@@ -239,13 +243,49 @@ function isSafeUrl(url) {
   try {
     const u = new URL(url);
     if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
-    const host = (u.hostname || '').replace(/^\[|\]$/g, '').toLowerCase();
+    let host = (u.hostname || '').replace(/^\[|\]$/g, '').toLowerCase();
     if (!host || host === 'localhost') return false;
     if (host.endsWith('.localhost')) return false;
+    // v4.3.18 P0-3 SSRF 修复：先做"类 IP 字面量归一化"。浏览器 new URL() 会
+    // 原样保留整数/十六进制/八进制形式的 IP（如 http://2130706433/ = 127.0.0.1、
+    // http://0x7f000001/、http://017700000001/），这些形态不命中点分十进制正则
+    // 可被当作"域名"绕过下方 isBlockedIpLiteral。这里把纯数字/0x/前导零形态
+    // 归一为点分十进制后再次拦截；正常域名（含字母等非数字字符）不命中该分支。
+    const norm = normalizeIpLiteralHost(host);
+    if (norm) host = norm;
     // 拦截私有网段 / 链路本地 / 云元数据 / 保留段（SSRF 纵深防御，含 IPv4 与 IPv6）
     if (isBlockedIpLiteral(host)) return false;
     return true;
   } catch { return false; }
+}
+
+// v4.3.18 P0-3：把整数/十六进制/八进制形式的 IP 主机名归一为点分十进制。
+// 仅当 host 全部由数字 / 0-9a-f / x / 点组成（即"是数字表示、不是域名"）时才归一；
+// 任一非此类字符（字母、连字符、下划线等）→ 视为普通域名，返回 null 不做处理。
+function normalizeIpLiteralHost(host) {
+  if (!host) return null;
+  // 已是标准 IPv4 点分十进制或含冒号的 IPv6，无需归一
+  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(host) || /:/.test(host)) return null;
+  // 仅当整串只含 [0-9a-f x .] 且不含减号等域名专有字符时才认作数字形式
+  if (/[^0-9a-fx.]/.test(host)) return null;
+
+  let val;
+  // 十六进制：0x 或 0X 前缀
+  if (/^0x[0-9a-f]+$/i.test(host)) {
+    val = parseInt(host, 16);
+  } else if (/^0+[0-9]+$/.test(host)) {
+    // 前导零：按八进制解读（如 017700000001 = 127.0.0.1 的回环区地址）
+    val = parseInt(host.replace(/^0+/, ''), 8);
+  } else if (/^[0-9]+$/.test(host)) {
+    // 纯十进制整数（无前导零）：如 2130706433 = 127.0.0.1
+    val = Number(host);
+  } else {
+    // 含 '.' 的复合/混合形式（如 127.1 之类简化写法）不在此统一处理，
+    // 交给 isBlockedIpLiteral 按其既有分支判定；这里不贸然归一
+    return null;
+  }
+  if (!Number.isSafeInteger(val) || val < 0 || val > 0xffffffff) return null;
+  return `${(val >>> 24) & 0xff}.${(val >>> 16) & 0xff}.${(val >>> 8) & 0xff}.${val & 0xff}`;
 }
 
 // ============================================================
@@ -732,8 +772,9 @@ function applyProxyFetchHeaders(url, referer, tabId) {
         for (const [k, v] of HEADER_RULE_CACHE) {
           if (v && v.refCount <= 0) {
             if (v.ruleId) {
-              chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [v.ruleId] }).catch?.(() => {});
-              freeRuleId(v.ruleId);
+              // v4.3.18 P0-4：确保规则删除完成后再放回 ID 池，避免并发 alloc
+              // 复用该 ID 后旧 remove 误删新规则（fire-and-forget，不阻塞淘汰循环）
+              removeForceRuleById(v.ruleId).then(() => freeRuleId(v.ruleId));
             }
             HEADER_RULE_CACHE.delete(k);
             break;
@@ -754,9 +795,9 @@ function applyProxyFetchHeaders(url, referer, tabId) {
     if (cached.refCount <= 0) {
       setTimeout(() => {
         if (cached.refCount <= 0) {
-          chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [ruleId] })
-            .catch?.(() => {});
-          freeRuleId(ruleId);
+          // v4.3.18 P0-4：确保规则删除完成后再放回 ID 池，避免并发 alloc 复用
+          // 该 ID 后旧 remove 误删新规则（fire-and-forget，不阻塞延迟清理）
+          removeForceRuleById(ruleId).then(() => freeRuleId(ruleId));
           HEADER_RULE_CACHE.delete(cacheKey);
         }
       }, HEADER_RULE_DELAY_MS);
@@ -1344,8 +1385,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   const handler = MessageHandlers[message?.type];
   if (!handler) return false;
-  Promise.resolve(handler(message, sender))
-    .then(result => sendResponse({ success: true, data: result }))
+  // v4.3.18 P1-7 安全审计修复：handler 若同步抛错，会在 Promise.resolve 求值
+  // 参数时提前冒泡，.catch 来不及挂上 → sendResponse 永不调用 → 发起端挂起、
+  // SW 生命周期被拖长。此处用 try/catch 把同步异常并入统一错误路径。
+  let p;
+  try {
+    p = Promise.resolve(handler(message, sender));
+  } catch (err) {
+    // 脱敏：错误消息中的 URL 替换为 [URL]
+    const msg = String(err?.message || err).replace(/https?:\/\/[^\s'"]+/g, '[URL]');
+    sendResponse({ success: false, error: msg });
+    return false; // sendResponse 已同步调用
+  }
+  p.then(result => sendResponse({ success: true, data: result }))
     .catch(err => {
       // 脱敏：错误消息中的 URL 替换为 [URL]
       const msg = String(err?.message || err).replace(/https?:\/\/[^\s'"]+/g, '[URL]');
@@ -1785,9 +1837,14 @@ const MessageHandlers = {
 
   'remove-force-rule': async (msg) => {
     // 仅移除指定 ruleId 的规则，不影响其他并发下载
+    // v4.3.18 P0-4 安全审计修复：先异步移除规则、成功后再放回 ID 池。
+    // 旧实现先同步 freeRuleId 再 await removeForceRuleById —— 两种调用之间
+    // 存在 await 边界，并发下载可能在 free 后 allocRuleId 拿到同一 ID 并
+    // 建立自己的新规则，随后旧 remove 执行，误删新下载的规则 → 突然 403
+    // 降级到慢速代理（TOCTOU 竞态）。
     if (msg.ruleId) {
-      freeRuleId(msg.ruleId);
       await removeForceRuleById(msg.ruleId);
+      freeRuleId(msg.ruleId);
     }
     return { removed: true };
   },
@@ -2105,6 +2162,9 @@ const MessageHandlers = {
       });
 
       if (!resp.ok) {
+        // v4.3.18 P1-6 安全审计修复：早退分支必须清看门狗，否则残留 30s
+        // 计时器并可能延长 SW 存活（每个 return 分支都须清理）
+        clearTimeout(watchdog);
         cleanup();
         return { error: `HTTP ${resp.status}` };
       }

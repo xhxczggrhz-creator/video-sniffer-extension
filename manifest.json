@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "视频嗅探器 - 网页视频下载",
-  "version": "4.3.17",
+  "version": "4.3.18",
   "description": "自动嗅探网页视频资源，多线程高速下载（aria2 动态分段技术），支持 HLS/DASH 流媒体、MSE 拦截捕获与音视频轨合并。纯 HTTP 直连，无 P2P，完全隐私。",
   "author": "VideoSniffer",
 

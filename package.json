@@ -1,0 +1,27 @@
+{
+  "name": "video-sniffer-extension",
+  "version": "4.3.18",
+  "description": "自动嗅探网页视频资源，多线程高速下载，支持 HLS/DASH 流媒体、MSE 拦截捕获与音视频轨合并。纯 HTTP 直连，无 P2P，完全隐私。",
+  "private": true,
+  "license": "MIT",
+  "type": "commonjs",
+  "scripts": {
+    "lint": "node scripts/check-js.js",
+    "test": "node tests/test-validate.js && node tests/test-merger.js",
+    "test:security": "node tests/test-ssrf-p03.js",
+    "package": "node scripts/package.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "chrome-extension",
+    "manifest-v3",
+    "video-downloader",
+    "mse",
+    "hls",
+    "dash",
+    "privacy"
+  ]
+}

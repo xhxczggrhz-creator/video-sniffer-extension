@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  check-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: 语法/基础门禁
+        run: node scripts/check-js.js
+      - name: 单元测试（合并 / 格式校验）
+        run: node tests/test-validate.js && node tests/test-merger.js
+      - name: 安全回归（P0-3 SSRF 防护）
+        run: node tests/test-ssrf-p03.js
+      - name: 校验 manifest
+        run: |
+          node -e "const m=require('./manifest.json'); if(!m.manifest_version||!m.version) process.exit(1); console.log('manifest v'+m.version+' OK')"
+      - name: 校验 CHANGELOG 与版本一致
+        run: |
+          VER=$(node -e "console.log(require('./manifest.json').version)")
+          grep -q "## \[$VER\]" CHANGELOG.md && echo "CHANGELOG matches $VER" || { echo "CHANGELOG 缺少 [$VER] 条目"; exit 1; }
+
+  package:
+    runs-on: ubuntu-latest
+    needs: check-and-test
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: 打包（zip + SHA256）
+        run: |
+          # scripts/package.js 依赖 PowerShell 压缩，改用 zip 工具兼容 Linux
+          VER=$(node -e "console.log(require('./manifest.json').version)")
+          mkdir -p dist
+          zip -r "dist/video-sniffer-${VER}.zip" manifest.json background content icons lib offscreen popup LICENSE README.md -x '*/drm-service/*' '*/node_modules/*' '*/\.*'
+          sha256sum "dist/video-sniffer-${VER}.zip"
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-sniffer-build
+          path: dist/*.zip

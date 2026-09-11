@@ -1,0 +1,41 @@
+---
+name: 站点失效（Site Broken）
+description: 特定网站无法嗅探 / 下载
+title: "[Broken] https://..."
+labels: [bug, site-specific]
+body:
+  - type: markdown
+    attributes:
+      value: "用于报告某个具体网站的视频无法被嗅探或下载。"
+  - type: input
+    id: site
+    attributes:
+      label: 站点 URL
+      description: 视频播放页地址（脱敏后）
+      placeholder: https://example.com/watch/...
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: 失败环节
+      options:
+        - 完全嗅探不到
+        - 嗅探到但下载失败（403 / 超时）
+        - MSE 捕获到但导出损坏
+        - HLS/DASH 合并失败
+        - 其他
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 扩展版本
+      placeholder: 4.3.18
+  - type: textarea
+    id: desc
+    attributes:
+      label: 详细现象
+      hint: 脱敏 URL / Cookie 后粘贴控制台与 Network 日志
+    validations:
+      required: false

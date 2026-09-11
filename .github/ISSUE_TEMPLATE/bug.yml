@@ -1,0 +1,74 @@
+---
+name: Bug 报告
+description: 反馈视频嗅探器的缺陷
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "请尽量完整填写，便于快速定位。若涉及某个网站无法嗅探，请优先用 `site-broken` 模板。"
+  - type: input
+    id: version
+    attributes:
+      label: 扩展版本
+      description: manifest.json 中的 version，或扩展详情页显示的版本号
+      placeholder: 4.3.18
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: 浏览器与版本
+      placeholder: Chrome 稳定版 126 / Edge ...
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: 复现类型
+      options:
+        - 无法嗅探到视频
+        - MSE 拦截 / 导出失败
+        - HLS/DASH 下载失败
+        - 音视频轨合并异常
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 越具体越好（访问的页面、点击的操作、出现的时间点）
+      placeholder: |
+        1. 打开 ...
+        2. 点 ...
+        3. 或直接提供出错时的截图
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期行为
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 扩展控制台日志 / 下载页日志
+      description: 可选但强烈建议；请脱敏任何 URL / Cookie 后粘贴
+      value: |
+        打开 Service Worker / 内容脚本控制台，粘贴相关错误输出。
+      render: shell
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: 隐私提醒
+      options:
+        - label: 我已脱敏上报内容中的 URL 与任何敏感凭据
+          required: true

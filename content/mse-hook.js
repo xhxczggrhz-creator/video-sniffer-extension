@@ -239,9 +239,14 @@
       if (!entry || entry.ended) return;
 
       // data 可能是 ArrayBuffer 或 ArrayBufferView
+      // v4.3.18 P1-1 安全审计修复：ArrayBuffer 分支统一做防御性拷贝。
+      // MSE 规范允许页面在 appendBuffer 返回后同步拷贝/复用/transfer(detach)
+      // 传入的 buffer；若直接持有原引用，页面用 buffer pool 时会"追溯性污染"
+      // 已捕获分段（导出静默损坏），transfer 给 Worker 后会抛 TypeError（导出必败）。
+      // 与 ArrayBufferView 分支的 slice() 语义保持一致——都得到独立副本。
       let buf;
       if (data instanceof ArrayBuffer) {
-        buf = data;
+        buf = data.slice(0);
       } else if (data && data.buffer instanceof ArrayBuffer) {
         buf = data.buffer.slice(data.byteOffset || 0, (data.byteOffset || 0) + (data.byteLength || 0));
       } else {

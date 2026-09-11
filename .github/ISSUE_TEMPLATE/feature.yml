@@ -1,0 +1,41 @@
+---
+name: 功能建议
+description: 提出新功能或改进
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: "请说明使用场景，帮助判断优先级。"
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你遇到的问题 / 想解决的场景
+      description: 描述现状痛点
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: 期望的方案
+      description: 你希望新增 / 改进什么行为
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 影响范围
+      options:
+        - 核心下载流程
+        - 嗅探 / MSE 拦截
+        - UI / 弹窗 / 下载页
+        - 兼容性 / 新站点支持
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: 补充信息（截图 / 参考延伸等）
+    validations:
+      required: false
