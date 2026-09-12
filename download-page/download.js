@@ -1439,6 +1439,31 @@
     try { return decodeURIComponent(s); } catch { return String(s); }
   }
 
+  // v4.4.1 命名模板：借鉴 N_m3u8DL-RE --save-pattern / yt-dlp -o 的变量占位思路。
+  // 模板里没有 {…} 时原样返回，行为与旧版「固定自定义名」完全一致；
+  // 未识别的 {xxx} 原样保留，不做静默删除。
+  function expandNameTemplate(tpl) {
+    const s = String(tpl || '');
+    if (s.indexOf('{') === -1) return s;
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const vars = {
+      title: videoName || '',
+      site: (() => {
+        try { return new URL(videoUrl).hostname.replace(/^www\./i, ''); } catch { return ''; }
+      })(),
+      quality: videoQuality || '',
+      format: videoFormat || '',
+      type: videoType || '',
+      date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+      time: `${pad(d.getHours())}${pad(d.getMinutes())}`,
+    };
+    return s.replace(/\{(\w+)\}/g, (whole, key) => {
+      const k = key.toLowerCase();
+      return Object.prototype.hasOwnProperty.call(vars, k) ? String(vars[k]) : whole;
+    });
+  }
+
   function generateFileName(defaultExt) {
     // v4.2.8：扩展名只认白名单（EXT_WHITELIST 在参数解析处定义）。
     // ext 会参与 `new RegExp(\`\\.${ext}$\`)` 与最终文件名，白名单外
@@ -1447,7 +1472,7 @@
     if (!EXT_WHITELIST.has(ext)) ext = 'mp4';
     if (settings.fileNameMode === 'custom' && settings.customName) {
       // 自定义名同样消毒 + 限长（防止超长路径写入失败与目录穿越）
-      let name = safeDecodeName(settings.customName)
+      let name = expandNameTemplate(safeDecodeName(settings.customName))
         .replace(/[<>:"/\\|?*\x00-\x1f]/g, '_')
         .replace(/\.{2,}/g, '.')
         .slice(0, 80)

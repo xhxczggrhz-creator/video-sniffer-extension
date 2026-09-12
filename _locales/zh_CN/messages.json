@@ -158,6 +158,9 @@
   "popup_name_unnamed": {
     "message": "未命名视频"
   },
+  "popup_paste_placeholder": {
+    "message": "粘贴视频 / 流媒体直链，回车即下载"
+  },
   "popup_play_disabled_title": {
     "message": "Blob/MSE 视频无法预览播放，请直接下载"
   },
@@ -335,6 +338,9 @@
   "dl_failed": {
     "message": "失败"
   },
+  "dl_filename_vars": {
+    "message": "可用变量：{title} 标题、{site} 站点、{quality} 清晰度、{format} 格式、{type} 类型、{date} 日期、{time} 时间"
+  },
   "dl_format_merged": {
     "message": "MP4 (合并)"
   },
@@ -507,13 +513,13 @@
     "message": "自动（按视频标题命名）"
   },
   "dl_setting_filename_custom": {
-    "message": "自定义名称"
+    "message": "自定义名称 / 模板"
   },
   "dl_setting_filename_label": {
     "message": "文件名称"
   },
   "dl_setting_filename_placeholder": {
-    "message": "请输入文件名"
+    "message": "请输入文件名或模板，如 {title}-{quality}"
   },
   "dl_setting_location_ask": {
     "message": "每次询问"

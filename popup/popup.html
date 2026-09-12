@@ -31,6 +31,15 @@
     <span id="status-text">正在嗅探视频…</span>
   </div>
 
+  <!-- v4.4.1 粘贴链接下载（借鉴 media-bridge 的 manual URL input：
+       页面没嗅到、或链接在别处时，直接粘贴直链/流媒体地址兜底） -->
+  <div class="paste-row">
+    <input id="paste-input" class="paste-input" type="text" autocomplete="off" spellcheck="false"
+      placeholder="粘贴视频 / 流媒体直链，回车即下载"
+      data-i18n-placeholder="popup_paste_placeholder"
+      data-i18n-aria-label="popup_paste_placeholder">
+  </div>
+
   <!-- v4.4.0 列表工具栏（借鉴猫抓 / Video DownloadHelper：多条目时按名称快速筛选 + 排序） -->
   <div id="toolbar" class="toolbar" style="display:none;">
     <input id="search-input" class="search-input" type="search" autocomplete="off"

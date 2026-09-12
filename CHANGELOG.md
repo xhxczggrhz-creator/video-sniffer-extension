@@ -6,6 +6,32 @@
 > 历史说明：v4.3.17 之前的真实开发历史（几十上百次迭代）存于本地并在代码注释中保留
 > 编号；GitHub 仓库仅是从本地快照的导入。v4.3.18 起正式在此维护公开 Changelog。
 
+## [4.4.1] - 2026-09-13
+
+### 借鉴同类项目（纯增量，未改动任何既有流程）
+
+- **弹窗「粘贴链接下载」**（借鉴 [media-bridge](https://github.com/jvillegasd/media-bridge)
+  的 manual URL input）：页面没嗅到、或链接在别处时，直接在弹窗粘贴视频 / 流媒体直链、
+  回车即下载。**复用既有的 `start-download` 链路**（后台 `isSafeUrl` 校验 → 会话存储 →
+  下载页），不新增消息通道，嗅探与下载主链路零改动；按 URL 扩展名自动判定
+  直链 / HLS / DASH 走对应引擎。
+- **文件名命名模板**（借鉴 [N_m3u8DL-RE](https://github.com/nilaoda/N_m3u8DL-RE)
+  的 `--save-pattern`、yt-dlp 的 `-o`）：设置里的「自定义名称」现在支持变量 ——
+  `{title}` `{site}` `{quality}` `{format}` `{type}` `{date}` `{time}`。
+  模板里没有 `{…}` 时行为与旧版固定名**完全一致**；未识别的 `{xxx}` 原样保留。
+
+### 调研结论（本轮未实现，按性价比排序）
+
+对比了 Bili23-Downloader、猫抓(cat-catch)、media-bridge、N_m3u8DL-RE：
+
+- **画质选择**：现在固定选最高画质，同类均可选。需要在嗅探期解析清单枚举变体，
+  会动下载主链路，风险最高 —— 留待单独一轮。
+- **下载历史页面**：历史数据已存 `chrome.storage.local`，但缺独立页面查看。
+- **站点黑名单**（猫抓的「避免抓取列表」姿态）：成本很低，作为合规姿态可随时加。
+- **字幕 / 弹幕下载**：Bili23 有；通用实现需解析 HLS `EXT-X-MEDIA:TYPE=SUBTITLES`
+  与 DASH 文本轨。
+- **直播流录制**：media-bridge / N_m3u8DL-RE 支持，成本高。
+
 ## [4.4.0] - 2026-09-12
 
 ### 国际化（i18n）

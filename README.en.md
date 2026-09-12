@@ -27,6 +27,10 @@
   black-frame warnings.
 - **Search & sort, copy as `curl` / `aria2c` / `ffmpeg`** — when a page exposes dozens of
   tracks, filter and sort them; copy a ready-to-run download command with the right `Referer`.
+- **Paste-a-URL download** — nothing detected, or the link is somewhere else? Paste the video
+  or stream URL into the popup and press Enter.
+- **File-name templates** — use `{title}`, `{site}`, `{quality}`, `{format}`, `{type}`,
+  `{date}` and `{time}` in the custom file name.
 - **Dark mode** — follows the system theme.
 
 ## Privacy

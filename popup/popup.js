@@ -20,6 +20,9 @@
   // i18n 兜底：i18n.js 未加载时退化为键名，绝不让弹窗白屏
   const t = (key, subs) => (typeof globalThis.t === 'function' ? globalThis.t(key, subs) : key);
 
+  // v4.4.1 粘贴下载：能从 URL 判定的媒体扩展名（其余按 mp4 交给下载页自行判定）
+  const EXT_HINTS = new Set(['m3u8', 'mpd', 'mp4', 'm4s', 'ts', 'webm', 'mkv', 'flv', 'mov', 'm4a', 'mp3']);
+
   let currentTabId = null;
   let currentTabUrl = null;
   let videos = [];
@@ -633,6 +636,16 @@
       scanTimeout = setTimeout(loadVideos, 1500);
     });
 
+    // v4.4.1 粘贴链接下载（回车触发）
+    const pasteInput = document.getElementById('paste-input');
+    if (pasteInput) {
+      pasteInput.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        handlePasteDownload();
+      });
+    }
+
     // v4.4.0 搜索 / 排序
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
@@ -716,6 +729,45 @@
     if (h > 0) return t('popup_dur_hm', [h, m]);
     if (m > 0) return t('popup_dur_ms', [m, s]);
     return t('popup_dur_s', [s]);
+  }
+
+  // v4.4.1 粘贴链接下载：复用既有 start-download 链路（后台校验 URL 后开下载页），
+  // 不新增消息通道，也不改动任何嗅探逻辑。
+  async function handlePasteDownload() {
+    const input = document.getElementById('paste-input');
+    const raw = String(input?.value || '').trim();
+    if (!raw) return;
+    if (!isSafeUrl(raw)) {
+      showToast(t('popup_err_invalid_url'));
+      return;
+    }
+    const format = guessFormatFromURL(raw);
+    const r = await safeSend({
+      type: 'start-download',
+      video: {
+        url: raw,
+        name: guessNameFromURL(raw),
+        format,
+        type: (format === 'm3u8' || format === 'mpd') ? 'stream' : 'direct',
+      },
+      referer: currentTabUrl,
+      tabId: currentTabId,
+    });
+    if (r?.error) { showToast(r.error); return; }
+    input.value = '';
+    window.close();
+  }
+
+  // 从 URL 猜格式：先看路径扩展名，再看查询串里的 m3u8 / mpd 提示
+  function guessFormatFromURL(url) {
+    try {
+      const m = new URL(url).pathname.toLowerCase().match(/\.([a-z0-9]{2,5})$/);
+      if (m && EXT_HINTS.has(m[1])) return m[1];
+    } catch { /* 非法 URL 由后台 isSafeUrl 拒绝 */ }
+    const s = String(url || '').toLowerCase();
+    if (s.includes('m3u8')) return 'm3u8';
+    if (/[./=]mpd\b/.test(s)) return 'mpd';
+    return 'mp4';
   }
 
   function guessNameFromURL(url) {

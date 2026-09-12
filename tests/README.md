@@ -5,7 +5,7 @@
 ## A. 可在纯 Node（无浏览器 API）运行的标准测试（纳入 CI）
 
 ```bash
-npm test                 # = node tests/test-validate.js && node tests/test-merger.js
+npm test                 # = test-validate + test-merger + test-name-template（命名模板）
 npm run test:security    # = node tests/test-ssrf-p03.js （P0-3 SSRF 字面量绕过防护）
 ```
 

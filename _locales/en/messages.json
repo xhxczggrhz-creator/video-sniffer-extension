@@ -158,6 +158,9 @@
   "popup_name_unnamed": {
     "message": "Unnamed video"
   },
+  "popup_paste_placeholder": {
+    "message": "Paste a video or stream URL, press Enter"
+  },
   "popup_play_disabled_title": {
     "message": "Blob/MSE video cannot be previewed — download it directly"
   },
@@ -335,6 +338,9 @@
   "dl_failed": {
     "message": "Failed"
   },
+  "dl_filename_vars": {
+    "message": "Variables: {title}, {site}, {quality}, {format}, {type}, {date}, {time}"
+  },
   "dl_format_merged": {
     "message": "MP4 (merged)"
   },
@@ -507,13 +513,13 @@
     "message": "Automatic (named after the video title)"
   },
   "dl_setting_filename_custom": {
-    "message": "Custom name"
+    "message": "Custom name / template"
   },
   "dl_setting_filename_label": {
     "message": "File name"
   },
   "dl_setting_filename_placeholder": {
-    "message": "Enter a file name"
+    "message": "File name or template, e.g. {title}-{quality}"
   },
   "dl_setting_location_ask": {
     "message": "Ask every time"

@@ -499,6 +499,36 @@ body {
 }
 
 /* ============================================================
+/* ============================================================
+   v4.4.1 粘贴链接下载
+   （借鉴 media-bridge 的 manual URL input：页面没嗅到时的兜底入口）
+   ============================================================ */
+.paste-row {
+  padding: 8px 14px 0;
+  flex-shrink: 0;
+}
+
+.paste-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+}
+
+.paste-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
+}
+
+.paste-input::placeholder {
+  color: var(--text-secondary);
+}
+
+/* ============================================================
    v4.4.0 列表工具栏：搜索 / 排序
    （借鉴猫抓、Video DownloadHelper：条目一多就必须能筛能排）
    ============================================================ */

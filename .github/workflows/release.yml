@@ -22,7 +22,7 @@ jobs:
       - name: 门禁（语法 / 单元 / 安全 / 国际化）
         run: |
           node scripts/check-js.js
-          node tests/test-validate.js && node tests/test-merger.js
+          npm test
           node tests/test-ssrf-p03.js
           node scripts/i18n-check.js
 

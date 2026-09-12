@@ -17,8 +17,8 @@ jobs:
           node-version: 20
       - name: 语法/基础门禁
         run: node scripts/check-js.js
-      - name: 单元测试（合并 / 格式校验）
-        run: node tests/test-validate.js && node tests/test-merger.js
+      - name: 单元测试（合并 / 格式校验 / 命名模板）
+        run: npm test
       - name: 安全回归（P0-3 SSRF 防护）
         run: node tests/test-ssrf-p03.js
       - name: 国际化门禁（语言包与代码键一致）
