@@ -290,8 +290,26 @@
   "dl_bili_video": {
     "message": "Bilibili video"
   },
+  "dl_bili_downloading_bytes": {
+    "message": "Downloading… $1 / $2"
+  },
+  "dl_bili_downloading_size": {
+    "message": "Downloading… $1"
+  },
+  "dl_bili_incomplete": {
+    "message": "Incomplete download: file was interrupted and discarded. Please retry"
+  },
   "dl_cache_cleared": {
     "message": "Cache cleared"
+  },
+  "dl_cancel": {
+    "message": "Cancel download"
+  },
+  "dl_cancelled": {
+    "message": "Cancelled"
+  },
+  "dl_cancelling": {
+    "message": "Cancelling…"
   },
   "dl_clear_cache": {
     "message": "Clear cache now"
@@ -755,6 +773,9 @@
   "sw_recording_video": {
     "message": "Recorded video"
   },
+  "sw_recording_tab_lost": {
+    "message": "The source page was closed or navigated away; recording could not start"
+  },
   "sw_rule_pool_exhausted": {
     "message": "Rule ID pool exhausted; retry later"
   },
@@ -901,6 +922,9 @@
   },
   "de_conn_timeout": {
     "message": "Connection timed out; no data arrived"
+  },
+  "de_incomplete_download": {
+    "message": "Incomplete download: file was interrupted and discarded. Please retry"
   },
   "de_opfs_unavailable": {
     "message": "OPFS is unavailable; cannot read the proxied segment"

@@ -92,6 +92,8 @@
     observedElements: new WeakSet(),
     mediaRecorder: null,
     recordChunks: [],
+    _recordId: null,             // v4.4.2：当前录制会话 ID（stopRecording 需回通知）
+    _recordCompleted: false,     // v4.4.2：record-complete 只发一次，防 onstop/stop 双发
     _recordStartTime: 0,
     _recordDataSize: 0,
     // v4.3.2 S-4：录制容量上限可配置。默认 2GB（保持旧行为），
@@ -570,6 +572,8 @@
         this.recordChunks = [];
         this._recordStartTime = Date.now();
         this._recordDataSize = 0;
+        this._recordId = recordId;      // v4.4.2：登记会话 ID，stopRecording 据此回通知
+        this._recordCompleted = false;  // v4.4.2：重置完成标记（新一轮录制）
         this._recordLimitHit = false;   // v4.2.8：2GB 上限触发标志（防 ondataavailable 连发时重复停止/通知）
 
         this.mediaRecorder = new MediaRecorder(stream, {
@@ -601,12 +605,13 @@
             this._recordProgressTimer = null;
           }
           this._stopRecordHelpers();
-          
+          this._recordCompleted = true;   // v4.4.2：防 stopRecording 再一次补发
+
           if (this.recordChunks.length === 0) {
             try {
               chrome.runtime.sendMessage({
                 type: 'record-complete',
-                recordId,
+                recordId: this._recordId,
                 error: 'no-data',
                 message: t('cs_record_no_data'),
               });
@@ -636,7 +641,7 @@
           try {
             chrome.runtime.sendMessage({
               type: 'record-complete',
-              recordId,
+              recordId: this._recordId,
               fileName: a.download,
               size: blob.size,
             });
@@ -885,7 +890,26 @@
       if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
         this.mediaRecorder.stop();
       } else {
+        // v4.4.2：修复录制卡“正在保存”。MediaRecorder 已 inactive（停止/
+        // 录制起点即未启动/上游已 stop）时 onstop 不会再触发 → record-complete
+        // 永远不发，下载页停留在“正在保存…”无法收尾。这里补发完成通知
+        //（无数据时同 no-data 语义），并防重：onstop 已发过就不再发。
         this._stopRecordHelpers();
+        if (!this._recordCompleted) {
+          this._recordCompleted = true;
+          const doneId = this._recordId;
+          if (doneId) {
+            try {
+              chrome.runtime.sendMessage({
+                type: 'record-complete',
+                recordId: doneId,
+                error: 'no-data',
+                message: t('cs_record_no_data'),
+              });
+            } catch {}
+          }
+        }
+        this._recordId = null;
       }
     },
 

@@ -2174,6 +2174,32 @@ const MessageHandlers = {
       watchdog = setTimeout(() => ctrl.abort(stallReason), 30000);
     };
 
+    // 提前声明 safeName：catch 分支需清理半截 OPFS 文件（SW 被抓/网络
+    // 中断时，流式写入可能只落盘一部分，绝不把半截文件交给下载页）
+    let safeName = null;
+    let writer = null;
+
+    // v4.4.2：单流大文件下载期间周期性广播进度（B站合并/单流模式）。
+    // 此前 proxy-fetch-full 全程只打日志，下载页进度条纹丝不动 —— 170MB
+    // 视频看起来像"卡死"，实质在下载。每 2MB 广播一次，下载页按
+    // downloadId 匹配过滤。
+    let lastNotified = 0;
+    const notifyProgress = (totalWritten, totalHint) => {
+      if (totalWritten - lastNotified < 2 * 1024 * 1024) return;
+      lastNotified = totalWritten;
+      const total = typeof totalHint === 'number' && totalHint > 0 ? totalHint : 0;
+      chrome.tabs.query({ url: chrome.runtime.getURL('download-page/download.html') }).then((tabs) => {
+        for (const tab of tabs) {
+          chrome.tabs.sendMessage(tab.id, {
+            type: 'proxy-full-progress',
+            downloadId: msg.downloadId || null,
+            bytes: totalWritten,
+            total,
+          }).catch?.(() => {});
+        }
+      }).catch(() => {});
+    };
+
     try {
       const resp = await fetch(msg.url, {
         method: 'GET',
@@ -2190,7 +2216,9 @@ const MessageHandlers = {
       }
 
       const ct = resp.headers.get('content-type') || 'unknown';
-      const cl = resp.headers.get('content-length') || 'unknown';
+      const clRaw = resp.headers.get('content-length');
+      const cl = clRaw || 'unknown';
+      const clNumber = (clRaw ? parseInt(clRaw) : 0) || 0;
       // 隐私：日志只记域名，不落完整 URL（含防盗链签名参数）
       let logHost = '';
       try { logHost = new URL(msg.url).hostname; } catch {}
@@ -2199,9 +2227,9 @@ const MessageHandlers = {
       // 流式写入 OPFS（边读边写，避免 50MB+ 全放内存）
       const root = await navigator.storage.getDirectory();
       const dir = await root.getDirectoryHandle('vs-downloads', { create: true });
-      const safeName = `sw_proxy_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      safeName = `sw_proxy_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
       const fh = await dir.getFileHandle(safeName, { create: true });
-      const writer = await fh.createWritable();
+      writer = await fh.createWritable();
 
       const reader = resp.body.getReader();
       let totalWritten = 0;
@@ -2238,6 +2266,8 @@ const MessageHandlers = {
             console.log(`[VideoSniffer] 下载进度: ${Math.round(totalWritten / 1024 / 1024)}MB / ${cl !== 'unknown' ? Math.round(parseInt(cl) / 1024 / 1024) + 'MB' : 'unknown'}`);
             lastLog = totalWritten;
           }
+          // v4.4.2：向下载页广播单流进度（B站/直链单流大文件不再“看着像卡死”）
+          notifyProgress(totalWritten, clNumber);
           if (pendingBytes >= FLUSH_BYTES) await flushPending();
         }
         await flushPending();
@@ -2254,9 +2284,22 @@ const MessageHandlers = {
         success: true,
         opfsFileName: safeName,
         totalSize: totalWritten,
+        // v4.4.2：回传服务器声明的 content-length，下载页据此校验文件完整性
+        //（SW 被抓/断流导致半截文件时不再被当作“下载完成”保存）
+        contentLength: clNumber || null,
       };
     } catch (e) {
       clearTimeout(watchdog);
+      // v4.4.2：失败/中断时清掉半截 OPFS 文件，防孤儿残留
+      //（上一次读取即清除的 OPFS 文件，下载页无法拿到 → 不再静默保存半截）
+      if (writer) { try { await writer.abort(); } catch {} }
+      if (safeName) {
+        try {
+          const root = await navigator.storage.getDirectory();
+          const dir = await root.getDirectoryHandle('vs-downloads', { create: false });
+          await dir.removeEntry(safeName);
+        } catch {}
+      }
       // 确保异常时也清理 DNR 规则
       cleanup();
       return { error: e?.name === 'AbortError' ? t('sw_dl_stalled_short') : e.message };
@@ -2669,18 +2712,36 @@ async function startRecording(video, tabId, recordSpeed) {
     recordSpeed: recordSpeed > 1 ? recordSpeed : 1,
   };
 
-  await chrome.tabs.sendMessage(tabId, {
+  // 投递失败（页面已关闭/导航中 "No tab with id"）：不中断流程——
+  // 仍打开录制下载页，页面加载后由下方 dlTab 定向通知收尾，避免永远停在“正在保存”
+  const beginDelivered = await chrome.tabs.sendMessage(tabId, {
     type: 'begin-record',
     recordId: recId,
     video,
     recordSpeed: recordSpeed > 1 ? recordSpeed : 1,
+  }).then(() => true).catch((err) => {
+    console.warn('[VideoSniffer] begin-record 投递失败:', err?.message || err);
+    return false;
   });
 
   // 打开下载页显示录制进度
   const url = chrome.runtime.getURL('download-page/download.html') +
     `?mode=record&recordId=${recId}&tabId=${tabId}` +
     `&name=${encodeURIComponent(video.name || guessNameFromUrl(video.url) || t('sw_recording_video'))}`;
-  await createTabAdjacent(url, tabId);
+  const dlTab = await createTabAdjacent(url, tabId);
+
+  if (!beginDelivered && dlTab?.id) {
+    // v4.4.2：content script 未收到 begin-record → 录制不可能开始，
+    // 等下载页挂好监听后定向发 record-complete(no-data) 收尾。
+    setTimeout(() => {
+      chrome.tabs.sendMessage(dlTab.id, {
+        type: 'record-complete',
+        recordId: recId,
+        error: 'no-data',
+        message: t('sw_recording_tab_lost'),
+      }).catch?.(() => {});
+    }, 500);
+  }
 
   return { recordId: recId, started: true };
 }

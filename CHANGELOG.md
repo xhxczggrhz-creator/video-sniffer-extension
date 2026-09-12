@@ -35,6 +35,29 @@
 - 新增 `tests/test-stream-variants.js`：HLS 主清单档位解析回归测试（含
   `AVERAGE-BANDWIDTH` 不得被当作 `BANDWIDTH`、相对 URI 解析等边界）。
 
+## [4.5.1] - 2026-09-12
+
+### Bug 修复
+
+- **B站「合并下载」卡死 / 暂停、设置无反应。** 合并模式此前没有初始化标准 UI，
+  下载页按钮全部缺少事件绑定。现在合并模式走完整 UI 初始化：暂停按钮复用为
+  「取消下载」（带「正在取消…」状态），设置按钮可正常打开；后台下载改为每 2MB
+  广播一次进度，下载页实时刷新进度条，不再出现“正在下载视频… 永远 0%”的假死；
+  失败后暂停按钮变「重试」可一键重跑。
+- **抖音等网页视频“秒下完但文件只有开头”。** 后台代理下载被中断/Service Worker
+  被杀时，OPFS 里残留半截文件、本地误判为完成。现在：后台断流时清理半截文件并回传
+  服务器 `content-length`；下载引擎先在 OPFS 上做大小比对，不足即抛
+  `INCOMPLETE`、丢弃损坏文件并转直连重下；单流路径增加 15 分钟竞态兜底，SW 被杀时
+  不再无限挂起。
+- **录制偶发卡在「正在保存」。** `MediaRecorder` 已停止（inactive）时 `onstop`
+  不再触发，`record-complete` 永远不发、下载页收不了尾。现在停止流程对 inactive
+  分支补发完成通知（无数据按「录制失败」收尾），并防止与 `onstop` 重复发送；
+  后台 `begin-record` 投递失败（源页已关闭/导航中的 “No tab with id”）不再中断
+  打开录制页的流程，页面加载后定向发完成通知复位 UI。
+- **语言包补齐。** 新增 `dl_cancel`、`dl_cancelling`、`dl_cancelled`、
+  `dl_bili_downloading_bytes/size`、`dl_bili_incomplete`、`de_incomplete_download`、
+  `sw_recording_tab_lost` 等键的中英文文案（此前缺失会显示源码键名）。
+
 ## [4.4.2] - 2026-09-13
 
 ### 第三方合规修复（无任何功能改动）

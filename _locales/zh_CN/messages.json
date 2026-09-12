@@ -290,8 +290,26 @@
   "dl_bili_video": {
     "message": "B站视频"
   },
+  "dl_bili_downloading_bytes": {
+    "message": "正在下载… $1 / $2"
+  },
+  "dl_bili_downloading_size": {
+    "message": "正在下载… $1"
+  },
+  "dl_bili_incomplete": {
+    "message": "下载不完整：文件被中断，已丢弃损坏文件，请重试"
+  },
   "dl_cache_cleared": {
     "message": "缓存已清除"
+  },
+  "dl_cancel": {
+    "message": "取消下载"
+  },
+  "dl_cancelled": {
+    "message": "已取消"
+  },
+  "dl_cancelling": {
+    "message": "正在取消…"
   },
   "dl_clear_cache": {
     "message": "立即清除缓存"
@@ -755,6 +773,9 @@
   "sw_recording_video": {
     "message": "录制视频"
   },
+  "sw_recording_tab_lost": {
+    "message": "源页面已关闭或跳转，未能开始录制"
+  },
   "sw_rule_pool_exhausted": {
     "message": "规则 ID 池耗尽，请稍后重试"
   },
@@ -901,6 +922,9 @@
   },
   "de_conn_timeout": {
     "message": "连接超时，无数据流入"
+  },
+  "de_incomplete_download": {
+    "message": "下载不完整：文件被中断，已丢弃损坏文件，请重试"
   },
   "de_opfs_unavailable": {
     "message": "OPFS 不可用，无法读取代理分段"

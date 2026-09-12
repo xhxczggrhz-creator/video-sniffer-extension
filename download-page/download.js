@@ -127,6 +127,11 @@
     if (msg.type === 'record-complete' && msg.recordId === recordId) {
       handleRecordComplete(msg);
     }
+    // v4.4.2：SW 单流代理（proxy-fetch-full）下载进度广播 —— B站合并模式
+    // 大文件下载期间实时刷新进度条/状态文案，不再“看起来像卡死”
+    if (msg.type === 'proxy-full-progress' && isBiliMergeMode && msg.downloadId === downloadId) {
+      updateBiliProgress(msg);
+    }
   });
 
   const params = new URLSearchParams(window.location.search);
@@ -256,6 +261,12 @@
   let _displayedPercent = 0;         // 当前显示的进度（用于平滑动画插值）
   let _targetPercent = 0;            // 目标进度
   let _rafId = null;                 // requestAnimationFrame 句柄
+
+  // v4.4.2 B站合并模式：下载过程可取消（暂停按钮 = 取消）+
+  // setupUI 只绑定一次（重试/重复进入 initBiliMergeMode 不重复加监听）
+  let biliAbortCtrl = null;
+  let biliCancelled = false;
+  let biliUiReady = false;
 
   // ============================================================
   // OPFS 残留清理：清除上次异常退出遗留的临时文件
@@ -417,6 +428,34 @@
       downloadCard.style.display = '';
     }
 
+    // v4.4.2 修复（实测 B站下载三个按钮全无反应）：
+    // B站合并模式此前不执行 setupUI() → 暂停/设置/清除缓存等按钮都没有
+    // 事件监听，点击毫无反应。首次进入时补齐标准 UI 绑定。
+    if (!biliUiReady) {
+      setupUI();
+      applySettingsToUI();
+    }
+    biliUiReady = true;
+
+    // v4.4.2：B站模式无 engine，标准“暂停/继续”无意义 —— 把暂停按钮
+    // 临时变为“取消”：中止本次 SW 代理下载（页面侧立即停止等待，SW 侧
+    // 后台请求随 1 小时 OPFS 清理兜底回收）。取消后复用 bindBiliRetry
+    // 变“重试”，可一键重跑全流程。
+    biliAbortCtrl = new AbortController();
+    biliCancelled = false;
+    const _pauseBtn = document.getElementById('pause-btn');
+    const _pauseLabel = document.getElementById('pause-label');
+    if (_pauseBtn) {
+      _pauseBtn.disabled = false;
+      if (_pauseLabel) _pauseLabel.textContent = t('dl_cancel');
+      _pauseBtn.addEventListener('click', () => {
+        biliCancelled = true;
+        try { biliAbortCtrl?.abort(new Error('user-cancel')); } catch {}
+        _pauseBtn.disabled = true;
+        if (_pauseLabel) _pauseLabel.textContent = t('dl_cancelling');
+      }, { once: true });
+    }
+
     const nameEl = document.getElementById('video-name');
     const statusEl = document.getElementById('status-text');
     const barEl = document.getElementById('progress-bar');
@@ -443,7 +482,8 @@
         //   * 校验只读前 16 字节
         //   * Blob([file]) 由磁盘背书（Chrome 不做整份堆拷贝）
         // 临时 OPFS 文件在下载触发 60s 后（与 revokeObjectURL 同窗口）回收。
-        const direct = await downloadViaProxy(biliDirectUrl, '', videoReferer, { asFile: true });
+        const direct = await downloadViaProxy(biliDirectUrl, '', videoReferer,
+          { asFile: true, signal: biliAbortCtrl?.signal });
         if (!direct || !direct.file || direct.file.size === 0) {
           throw new Error(t('dl_err_bili_direct_failed'));
         }
@@ -498,7 +538,8 @@
       // 1. 通过 SW 代理下载视频流
       if (statusEl) statusEl.textContent = t('dl_downloading_video_stream');
       if (barEl) barEl.style.width = '10%';
-      let videoBuf = await downloadViaProxy(biliVideoUrl, biliVideoBackupUrl, videoReferer);
+      let videoBuf = await downloadViaProxy(biliVideoUrl, biliVideoBackupUrl, videoReferer,
+        { signal: biliAbortCtrl?.signal });
       if (!videoBuf || videoBuf.byteLength === 0) {
         throw new Error(t('dl_err_bili_stream_failed'));
       }
@@ -509,7 +550,8 @@
       if (biliAudioUrl) {
         if (statusEl) statusEl.textContent = t('dl_downloading_audio_stream');
         if (barEl) barEl.style.width = '40%';
-        audioBuf = await downloadViaProxy(biliAudioUrl, biliAudioBackupUrl, videoReferer);
+        audioBuf = await downloadViaProxy(biliAudioUrl, biliAudioBackupUrl, videoReferer,
+          { signal: biliAbortCtrl?.signal });
         if (!audioBuf || audioBuf.byteLength === 0) {
           console.warn('[VideoSniffer] 音频流下载失败，仅保存视频轨');
           audioBuf = null;
@@ -560,8 +602,14 @@
       console.error('[VideoSniffer] B站合并下载失败:', err);
       // 脱敏：错误文本里的 URL 一律替换（B站直链带签名参数，不能外泄到页面）
       const safeMsg = String(err?.message || t('dl_unknown_error')).replace(/https?:\/\/[^\s'"]+/g, '[URL]');
-      if (statusEl) statusEl.textContent = t('dl_download_failed_msg', [safeMsg]);
-      if (barEl) { barEl.style.width = '100%'; barEl.style.background = '#FF3B30'; }
+      if (biliCancelled) {
+        // v4.4.2：用户主动取消 —— 明确告知，进度条归零
+        if (statusEl) statusEl.textContent = t('dl_cancelled');
+        if (barEl) { barEl.style.width = '0%'; barEl.style.background = '#FFB300'; }
+      } else {
+        if (statusEl) statusEl.textContent = t('dl_download_failed_msg', [safeMsg]);
+        if (barEl) { barEl.style.width = '100%'; barEl.style.background = '#FF3B30'; }
+      }
       // P1-D（v4.2.8）：B站合并模式没有 engine 实例，setupUI 也未执行，
       // 旧版"失败后点暂停按钮=重试"对本模式完全无效（按钮无监听）——
       // 显式把暂停按钮绑定为重试入口，失败可一键重跑全流程
@@ -569,6 +617,25 @@
     }
 
     stopKeepalive();
+  }
+
+  // v4.4.2：SW 单流代理下载进度回调（B站合并模式）—— SW 每约 2MB 广播一次
+  // { bytes, total }，这里同步进度条/百分比/状态文案，大文件下载不再“卡着不动”
+  function updateBiliProgress({ bytes = 0, total = 0 } = {}) {
+    const statusEl = document.getElementById('status-text');
+    const barEl = document.getElementById('progress-bar');
+    const pctEl = document.getElementById('progress-percentage');
+    const gEl = document.getElementById('progress-glow');
+    if (total > 0) {
+      const pct = Math.max(0, Math.min(99, Math.round((bytes / total) * 100)));
+      if (barEl) barEl.style.width = pct + '%';
+      if (gEl) gEl.style.left = pct + '%';
+      if (pctEl) pctEl.textContent = pct + '%';
+      if (statusEl) statusEl.textContent = t('dl_bili_downloading_bytes',
+        [Storage.formatSize(bytes), Storage.formatSize(total)]);
+    } else {
+      if (statusEl) statusEl.textContent = t('dl_bili_downloading_size', [Storage.formatSize(bytes)]);
+    }
   }
 
   // P1-D：B站合并失败后的重试按钮（once: 单次绑定，重试失败会再绑）
@@ -604,16 +671,41 @@
 
   async function downloadViaProxy(url, backupUrl, referer, opts = {}) {
     const asFile = !!(opts && opts.asFile);
+    const signal = (opts && opts.signal) || null;
+    // v4.4.2：用户点“取消”时立即停止等待（SW 侧请求无法中途撤回，
+    // 其 OPFS 写入随 1 小时残留清理兜底；页面侧不再无限等 15 分钟上限）
+    let cancelNotified = false;
+    const registerCancel = () => {
+      if (!signal) return;
+      if (signal.aborted) {
+        cancelNotified = true;
+      } else {
+        signal.addEventListener('abort', () => { cancelNotified = true; }, { once: true });
+      }
+    };
+    registerCancel();
+
     const tryFetch = async (targetUrl) => {
-      // 策略 1：通过 SW 代理下载（携带 Referer，写入 OPFS）
+      // 取消信号已触发：直接放弃本次尝试
+      if (cancelNotified) return null;
       let response;
       try {
+        // P2 新增：sendMessage 部分 listener 常驻，超时分支不会自动清理——
+        // 用 Promise.race 包裹（同旧版语义），取消时立即返回 null
         response = await Promise.race([
           chrome.runtime.sendMessage({
             type: 'proxy-fetch-full',
             url: targetUrl,
             referer: referer || 'https://www.bilibili.com/',
+            downloadId,
           }),
+          // 等待取消（signal aborted → resolve null，让外层快速结束）
+          signal ? new Promise((resolve) => {
+            const onAbort = () => resolve(null);
+            signal.addEventListener('abort', onAbort, { once: true });
+            // 竞态中途若下载已结束，listener 残留会在 abort 时解析一个
+            // 已无意义的值 —— 无副作用（resolve null 无人接收）
+          }) : new Promise(() => {}),
           // P1-C：兜底硬上限（对齐 SW 停滞看门狗语义，见上方注释）
           new Promise((_, reject) => setTimeout(
             () => reject(new Error('SW 代理下载超时（15 分钟兜底上限）')),
@@ -623,28 +715,36 @@
       } catch (e) {
         console.warn('[VideoSniffer] SW 代理通信失败:', e?.message);
       }
+      if (cancelNotified) return null;
 
       // 消息中枢包装了一层：response = { success, data: handlerResult }
       const handlerResult = response?.data || response;
 
       if (handlerResult?.success && handlerResult.opfsFileName) {
+        // v4.4.2：完整性校验 —— SW 回传服务器 content-length；若 SW 抓取
+        // 被截断（SW 被杀/断流）导致半截文件，长度不匹配时按失败处理，
+        // 绝不保存“只有开头”的损坏文件
         try {
           const root = await navigator.storage.getDirectory();
           const dir = await root.getDirectoryHandle('vs-downloads', { create: false });
           const fh = await dir.getFileHandle(handlerResult.opfsFileName);
           const file = await fh.getFile();
+          const cl = handlerResult.contentLength;
+          if (cl && file.size < cl) {
+            console.warn(`[VideoSniffer] OPFS 文件不完整: ${handlerResult.opfsFileName}, ${file.size} bytes < content-length ${cl}`);
+            try { await dir.removeEntry(handlerResult.opfsFileName); } catch {}
+            throw Object.assign(new Error(t('dl_bili_incomplete')), { code: 'INCOMPLETE' });
+          }
           if (asFile) {
-            // P2：不整读。临时文件交由调用方在下载落盘后回收（removeOpfsTemp）
-            console.log(`[VideoSniffer] OPFS 文件就绪: ${handlerResult.opfsFileName}, ${file.size} bytes`);
             return { file, name: handlerResult.opfsFileName };
           }
           const buf = await file.arrayBuffer();
-          console.log(`[VideoSniffer] OPFS 读取成功: ${handlerResult.opfsFileName}, ${buf.byteLength} bytes`);
           try { await dir.removeEntry(handlerResult.opfsFileName); } catch {}
           return buf;
         } catch (e) {
+          // 信息保留：INCOMPLETE 是真正的完整性失败，原样上抛（非网络类）
+          if (e?.code === 'INCOMPLETE') throw e;
           console.warn('[VideoSniffer] OPFS 读取失败:', e?.message);
-          // 读取失败也要清掉 SW 落盘的临时文件，防孤儿堆积
           removeOpfsTemp(handlerResult.opfsFileName);
         }
       }
@@ -654,7 +754,10 @@
         console.warn('[VideoSniffer] SW 代理失败:', handlerResult?.error || '未知错误');
       }
       try {
+        if (cancelNotified) return null;
         const ctrl = new AbortController();
+        const onCancel = () => ctrl.abort(new Error('user-cancel'));
+        if (signal) signal.addEventListener('abort', onCancel, { once: true });
         const timer = setTimeout(() => {
           ctrl.abort(new Error('直连回退请求超时'));
         }, DIRECT_FALLBACK_TIMEOUT_MS);
@@ -665,13 +768,14 @@
             credentials: 'omit', // 隐私最小化：不向 CDN 发送 Cookie
             signal: ctrl.signal,
           });
-          if (directResp.ok) {
+          if (directResp.ok && !cancelNotified) {
             console.log('[VideoSniffer] 直接 fetch 成功（回退模式）');
             const buf = await directResp.arrayBuffer();
             return asFile ? { file: new File([buf], 'direct.bin', { type: 'video/mp4' }), name: null } : buf;
           }
         } finally {
           clearTimeout(timer);
+          if (signal) signal.removeEventListener('abort', onCancel);
         }
       } catch (e) {
         console.warn('[VideoSniffer] 直接 fetch 也失败:', e?.message);
