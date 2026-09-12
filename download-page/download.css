@@ -514,3 +514,31 @@ body {
     padding: 12px;
   }
 }
+
+/* ============================================================
+   v4.4.0 深色模式：跟随系统（prefers-color-scheme）
+   color-scheme 让 <select>/<input> 等原生控件一起变深
+   ============================================================ */
+:root {
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141416;
+    --card-bg: #1c1c1e;
+    --text: #f5f5f7;
+    --text-secondary: #98989d;
+    --border: #38383a;
+    --accent-light: #3a2118;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.55);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+  }
+
+  /* 两处硬编码的浅灰底（进度条轨道 / 分段可视化空格） */
+  .progress-bar-container,
+  .chunk-segment {
+    background: #2c2c2e;
+  }
+}

@@ -2,7 +2,9 @@
 
 > 浏览器 MV3 扩展：自动嗅探网页视频，多线程高速下载（aria2 动态分段技术），支持流媒体（HLS/DASH）、MSE 拦截捕获、音视频轨合并与录制。
 
-**版本：4.3.18 ｜ 纯 HTTP 直连，无 P2P / BT / 磁力，完全隐私。**
+**版本：4.4.0 ｜ 纯 HTTP 直连，无 P2P / BT / 磁力，完全隐私。**
+
+[English](README.en.md)
 
 ---
 
@@ -11,6 +13,7 @@
 - [CHANGELOG.md](CHANGELOG.md)：版本更新历史
 - [SECURITY.md](SECURITY.md)：安全政策与漏洞报告
 - [PRIVACY.md](PRIVACY.md)：隐私承诺
+- [docs/i18n.md](docs/i18n.md)：国际化说明 · **如何新增一门语言（只需加一个 JSON，无需改代码）**
 
 ---
 
@@ -22,6 +25,10 @@
 - **音视频轨合并**：切轨流（视频轨 + 音频轨）自动合并为单 MP4
 - **MSE 拦截捕获**：拦截 MediaSource appendBuffer 数据，广告清除、超限截断保护
 - **录制模式**：MediaRecorder 实时捕获，支持倍速与黑帧告警
+- **列表搜索 / 排序**：条目多时按名称、地址、格式筛选；支持智能排序 / 按大小 / 按名称 / 按类型，排序方式会被记住
+- **复制为命令**：一键复制 链接 / `curl` / `aria2c` / `ffmpeg` 命令（自动带上源页面 Referer），方便交给外部下载器
+- **国际化**：内置中文 / English，跟随浏览器界面语言；**新增语言只需加一个 JSON 文件，无需改代码**（见 [docs/i18n.md](docs/i18n.md)）
+- **深色模式**：跟随系统主题；快捷键 `Alt+Shift+V` 直接打开弹窗
 
 ---
 
@@ -55,11 +62,13 @@ video-sniffer-extension/
 │   ├── mse-hook.js                #   MSE appendBuffer 拦截 + B站 __playinfo__
 │   ├── media-sniffer.js           #   直链/流媒体嗅探 + 录制
 │   └── content-script.js          #   消息桥接 / B站 playurl API
-├── lib/                           # 核心库（mp4-merger / ts-remux / download-engine / stream-downloader / constants）
+├── lib/                           # 核心库（mp4-merger / ts-remux / download-engine / stream-downloader / constants / i18n）
 ├── download-page/                 # 下载页面（多线程下载引擎 UI / 转封装 / 合并）
 ├── popup/                         # 扩展弹窗
 ├── offscreen/                     # Offscreen 文档
-├── scripts/                       # 工程脚本（check-js 语法门禁 / package 打包+校验和）
+├── _locales/                      # 语言包（zh_CN / en；加语言 = 加目录，零代码改动）
+├── docs/                          # 国际化等维护文档
+├── scripts/                       # 工程脚本（check-js 语法门禁 / i18n-check 语言包门禁 / package 打包+校验和）
 ├── tests/                         # 回归/单测（test-validate / test-merger / test-ssrf-p03 等）
 ├── .github/                       # Issue/PR 模板 + CI workflow
 └── icons/                         # 图标
@@ -74,6 +83,7 @@ npm install          # 项目无运行时依赖，仅用于启用 npm scripts
 npm run lint         # 语法门禁：全部手写 JS（自动区分 ESM/CJS）
 npm test             # 单元回归：test-validate + test-merger
 npm run test:security   # 安全回归：P0-3 SSRF 字面量绕过防护
+npm run test:i18n       # 国际化门禁：语言包与代码引用键一致、占位符一致、片段已合并
 npm run package      # 产 dist/video-sniffer-<version>.zip + SHA256
 ```
 

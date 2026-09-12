@@ -5,6 +5,10 @@
 //  3. 超长响应精确截断 + 写入错误不再被吞
 const fs = require('fs');
 const path = require('path');
+// i18n 运行时先行加载（等价于 download.html 里 lib/i18n.js 排在最前的 <script>）：
+// 下面用 new Function 加载的 download-engine.js 里 t() 才能拿到 zh_CN 文案，
+// 断言「分段反复失败 / 偏移错位 / 写入失败」这类用户可见错误文本才有意义。
+require('../lib/i18n.js');
 // O-6 搬入 tests/ 子目录后源码路径相对项目根（兼容从项目根或 tests/ 目录运行）
 const ENGINE_PATH = path.resolve(__dirname, '..', 'lib', 'download-engine.js');
 const src = fs.readFileSync(ENGINE_PATH, 'utf8');

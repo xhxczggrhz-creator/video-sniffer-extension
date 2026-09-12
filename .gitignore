@@ -22,8 +22,9 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# ---- 本地工具内存（本机 workbuddy 会话记忆，不入库）----
+# ---- 本地工具内存（本机会话记忆/评审草稿，不入库）----
 .workbuddy/
+.trae/
 
 # ---- 测试临时产物 ----
 tests/tmp/

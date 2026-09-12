@@ -99,7 +99,7 @@
         const isAudioStream = /mp4a|opus|flac|ec-3/i.test(mt);
         const videoInfo = {
           url: `mse://${msg.captureId}`,
-          name: document.title || 'MSE 捕获视频',
+          name: document.title || t('cs_mse_captured_video'),
           type: 'mse-capture',
           format: isAudioStream ? 'm4a' : 'mp4', // 统一用 mp4/m4a 扩展名（iPhone 兼容）
           mimeType: mt,
@@ -190,7 +190,7 @@
 
       case 'capture-reset': {
         // abort() 触发：广告内容已清除，通知用户
-        showMseNotification('检测到内容切换（广告→正片），已清除广告数据，请重新点击 MSE 下载', false);
+        showMseNotification(t('cs_mse_ad_cleared'), false);
         break;
       }
 
@@ -256,23 +256,23 @@
         // MSE hook 返回错误
         if (msg.error) {
           const errMsg = msg.error === 'empty'
-            ? 'MSE 捕获数据为空，请先播放视频再下载'
+            ? t('cs_mse_empty')
             : msg.error === 'rate-limited'
-              ? 'MSE 数据请求过于频繁，请稍候几秒再试'
-              : '未找到 MSE 捕获数据，请确保视频已开始播放';
+              ? t('cs_mse_rate_limited')
+              : t('cs_mse_not_found');
           showMseNotification(errMsg, true);
           return;
         }
 
         // MSE hook 在 MAIN 世界创建了 Blob，传回 blob: URL
         if (!msg.blobUrl) {
-          showMseNotification('数据传输失败', true);
+          showMseNotification(t('cs_mse_transfer_failed'), true);
           return;
         }
 
         // v4.2.8：超限截断提示（mse-hook 侧 capture-limit 曾触发）
         if (msg.truncated) {
-          showMseNotification('该捕获已达大小上限，导出的文件不含超出部分（视频可能不完整）', true);
+          showMseNotification(t('cs_mse_truncated'), true);
         }
 
         saveMseBlob(msg.blobUrl, msg.ext || 'mp4', msg.size || 0);
@@ -295,23 +295,23 @@
 
         if (msg.error) {
           const errMap = {
-            'not-found': '未找到 MSE 捕获数据，请确保视频已开始播放',
-            'empty': 'MSE 捕获数据为空，请先播放视频再下载',
-            'no-audio-track': '未找到配对的音频轨，无法合并。请直接下载视频轨（无声）或改用录制',
-            'no-merger': '合并器未就绪，请刷新页面后重试',
-            'merge-failed': '音视频合并失败，已降级：请分别下载视频轨和音频轨后手动合并',
-            'encrypted': '该流为加密内容（付费内容），MSE 数据本身是密文，导出无法播放。免费内容可正常下载',
+            'not-found': t('cs_mse_not_found'),
+            'empty': t('cs_mse_empty'),
+            'no-audio-track': t('cs_merge_no_audio'),
+            'no-merger': t('cs_merge_not_ready'),
+            'merge-failed': t('cs_merge_failed_detail'),
+            'encrypted': t('cs_merge_encrypted'),
           };
           // v4.2.8：hasOwnProperty 查表 —— msg.error 可控，直取会命中原型链键
           const errText = Object.prototype.hasOwnProperty.call(errMap, msg.error)
             ? errMap[msg.error]
-            : '合并失败，请重试';
+            : t('cs_merge_failed');
           showMseNotification(errText, true);
           return;
         }
 
         if (!msg.blobUrl) {
-          showMseNotification('合并数据传输失败', true);
+          showMseNotification(t('cs_merge_transfer_failed'), true);
           return;
         }
 
@@ -337,7 +337,7 @@
       const ts = new Date().toISOString().slice(0, 10);
       const fileName = `${rawTitle}_${ts}.${ext}`;
 
-      showMseNotification(`正在保存 ${formatBytes(size)} 数据…`, false);
+      showMseNotification(t('cs_saving', [formatBytes(size)]), false);
 
       // 用 anchor 下载（blob: URL 由 MAIN 世界创建，同源可访问）
       const a = document.createElement('a');
@@ -348,11 +348,11 @@
       a.click();
       a.remove();
 
-      showMseNotification(`已保存: ${fileName}`, false);
+      showMseNotification(t('cs_saved_file', [fileName]), false);
     } catch (e) {
       // 脱敏：不输出完整 URL 到控制台
       console.error('[VideoSniffer] MSE save error:', String(e?.message || e).replace(/https?:\/\/[^\s'"]+/g, '[URL]'));
-      showMseNotification('保存失败，请重试', true);
+      showMseNotification(t('cs_save_failed'), true);
     }
   }
 
@@ -379,7 +379,7 @@
                      window.__VideoSnifferInternal__.pendingReport.size,
             });
           } else {
-            sendResponse({ success: false, error: '嗅探器未就绪' });
+            sendResponse({ success: false, error: t('cs_sniffer_not_ready') });
           }
           break;
         }
@@ -400,7 +400,7 @@
         case 'mse-download': {
           const captureId = message.captureId;
           if (!captureId) {
-            sendResponse({ success: false, error: '缺少 captureId' });
+            sendResponse({ success: false, error: t('cs_missing_capture_id') });
             break;
           }
           // v4.2.8：记录本次导出请求（data-response 防伪造校验用）
@@ -417,12 +417,12 @@
             clearTimeout(mseTimeouts.get(captureId));
           }
           const timeout = setTimeout(() => {
-            showMseNotification('MSE 数据请求超时，请确保视频已开始播放后再试', true);
+            showMseNotification(t('cs_mse_timeout'), true);
             mseTimeouts.delete(captureId);
           }, 10000);
           mseTimeouts.set(captureId, timeout);
 
-          sendResponse({ success: true, message: '已请求数据传输' });
+          sendResponse({ success: true, message: t('cs_request_data_sent') });
           break;
         }
 
@@ -430,7 +430,7 @@
         case 'mse-merge-download': {
           const captureId = message.captureId;
           if (!captureId) {
-            sendResponse({ success: false, error: '缺少 captureId' });
+            sendResponse({ success: false, error: t('cs_missing_capture_id') });
             break;
           }
           // v4.2.8：记录本次导出请求（merged-data-response 防伪造校验用）
@@ -447,12 +447,12 @@
             clearTimeout(mseTimeouts.get(captureId));
           }
           const timeout = setTimeout(() => {
-            showMseNotification('音视频合并请求超时，请确保视频已开始播放后再试', true);
+            showMseNotification(t('cs_merge_timeout'), true);
             mseTimeouts.delete(captureId);
           }, 30000);
           mseTimeouts.set(captureId, timeout);
 
-          sendResponse({ success: true, message: '已请求音视频合并导出' });
+          sendResponse({ success: true, message: t('cs_request_merge_sent') });
           break;
         }
 
@@ -480,7 +480,7 @@
             v.play().catch(() => {});
             sendResponse({ success: true });
           } else {
-            sendResponse({ success: false, error: '页面上没有视频元素' });
+            sendResponse({ success: false, error: t('cs_no_video_element') });
           }
           break;
         }
@@ -494,13 +494,13 @@
   function handleRecording(message, sendResponse) {
     const sniffer = window.__VideoSnifferInternal__;
     if (!sniffer) {
-      sendResponse({ success: false, error: '嗅探器未初始化' });
+      sendResponse({ success: false, error: t('cs_sniffer_uninitialized') });
       return;
     }
 
     const videoEl = document.querySelector('video');
     if (!videoEl) {
-      sendResponse({ success: false, error: '页面上没有找到视频元素' });
+      sendResponse({ success: false, error: t('cs_no_video_element_found') });
       return;
     }
 
@@ -513,7 +513,7 @@
     const result = sniffer.startRecording(videoEl, message.recordId, message.recordSpeed);
     // 加密保护内容直接返回明确错误（而非进入录制后黑屏）
     if (result?.success === false && result?.error === 'encrypted-protected') {
-      showMseNotification(result.message || '该视频受加密保护，录制会黑屏且无合法导出途径，请使用平台官方离线下载', true);
+      showMseNotification(result.message || t('cs_record_encrypted'), true);
     }
     sendResponse(result);
   }

@@ -6,6 +6,33 @@
 > 历史说明：v4.3.17 之前的真实开发历史（几十上百次迭代）存于本地并在代码注释中保留
 > 编号；GitHub 仓库仅是从本地快照的导入。v4.3.18 起正式在此维护公开 Changelog。
 
+## [4.4.0] - 2026-09-12
+
+### 国际化（i18n）
+- **接入 Chrome 原生语言包**：新增 `_locales/zh_CN`、`_locales/en`，`manifest.json` 的
+  名称/简介/弹窗标题改用 `__MSG_*__`。**新增语言只需新增一个 JSON 文件，零代码改动**；
+  Chrome 自动按界面语言加载，缺失的键自动回落 `default_locale`（zh_CN）。
+- **`lib/i18n.js`**：`t(key, subs)` 薄封装 + `data-i18n` DOM 本地化；拿不到译文时返回键名
+  而不是空串，HTML 里的中文原文作为无 JS 兜底保留，**语言包损坏也不会白屏**。
+- 覆盖范围：扩展清单、弹窗、下载管理页、后台通知/右键菜单/错误文案、页面内 MSE 提示。
+  仍为中文的部分：代码注释、`console.*` 调试输出、MAIN world 脚本（无 `chrome.i18n`）
+  与 `lib/mp4-merger.js` / `lib/ts-remux.js` 的内部错误码；这些不面向终端用户。
+- **`scripts/i18n-check.js` + `npm run test:i18n`**：门禁校验 zh/en 键集合一致、
+  `$n` 占位符一致、代码引用的键都存在、`manifest.json` 的 `__MSG_*__` 都存在、
+  未合并的 `*.frag.json` 清零。已接入 CI。
+
+### 借鉴同类扩展的能力
+- **弹窗搜索 / 排序**（借鉴猫抓、Video DownloadHelper）：条目多时按名称/地址/格式筛选，
+  支持智能排序、按大小、按名称、按类型，排序方式持久化。
+- **「更多复制方式」**：一键复制 链接 / `curl` / `aria2c` / `ffmpeg` 命令（自动带上
+  源页面 Referer），方便把任务交给外部下载器。
+- **深色模式**：`prefers-color-scheme` 自适应，弹窗不再在暗色系统下刺眼。
+- **键盘快捷键**：`Alt+Shift+V` 直接打开弹窗。
+
+### 工程化
+- `manifest.json` 增加 `default_locale`、`short_name`、`homepage_url`。
+- 打包与 CI 纳入 `_locales`（此前会漏打包语言包）。
+
 ## [4.3.18] - 2026-09-11
 
 ### 安全修复（安全与工程化评审 P0/P1）

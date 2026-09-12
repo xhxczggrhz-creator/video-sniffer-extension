@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>视频嗅探器 - 下载管理</title>
+  <title data-i18n="dl_page_title">视频嗅探器 - 下载管理</title>
   <link rel="stylesheet" href="download.css">
 </head>
 <body>
@@ -17,7 +17,7 @@
             <path d="M12 22V12M2 7l10 5 10-5" stroke="#FF6B35" stroke-width="2"/>
             <circle cx="12" cy="12" r="3" fill="#FF6B35"/>
           </svg>
-          <span>视频嗅探器 - 下载管理</span>
+          <span data-i18n="dl_page_title">视频嗅探器 - 下载管理</span>
         </div>
       </div>
       <div class="topbar-right">
@@ -25,7 +25,7 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 2L4 7v6c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V7l-8-5z"/>
           </svg>
-          隐私下载 · 无 P2P
+          <span data-i18n="dl_privacy_badge">隐私下载 · 无 P2P</span>
         </span>
       </div>
     </div>
@@ -43,7 +43,7 @@
             </svg>
           </div>
           <div class="video-details">
-            <h2 id="record-name">录制中</h2>
+            <h2 id="record-name" data-i18n="dl_record_recording">录制中</h2>
             <div class="video-meta-row">
               <span class="meta-item" style="color:#e91e63;font-weight:600;">● REC</span>
               <span class="meta-item" id="record-elapsed">00:00</span>
@@ -55,7 +55,7 @@
 
         <div class="progress-section">
           <div class="progress-header">
-            <div class="progress-fraction" id="record-status-text">正在录制画面…</div>
+            <div class="progress-fraction" id="record-status-text" data-i18n="dl_record_capturing">正在录制画面…</div>
           </div>
           <div class="progress-bar-container">
             <div class="progress-bar" id="record-bar" style="width:100%;background:linear-gradient(90deg,#e91e63,#ff5722);animation:recordPulse 2s infinite;"></div>
@@ -67,11 +67,11 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
               <rect x="6" y="6" width="12" height="12" rx="2"/>
             </svg>
-            <span>停止录制并保存</span>
+            <span data-i18n="dl_record_stop">停止录制并保存</span>
           </button>
         </div>
 
-        <div class="record-hint" style="margin-top:12px;font-size:13px;color:#86868b;">
+        <div class="record-hint" style="margin-top:12px;font-size:13px;color:#86868b;" data-i18n="dl_record_hint">
           录制的是解码后画面，适用于无法直接下载的流媒体。请在源页面保持视频播放。
         </div>
       </div>
@@ -86,7 +86,7 @@
             </svg>
           </div>
           <div class="video-details">
-            <h2 id="video-name">加载中…</h2>
+            <h2 id="video-name" data-i18n="dl_loading">加载中…</h2>
             <div class="video-meta-row">
               <span class="meta-item" id="video-format">--</span>
               <span class="meta-item" id="video-size">--</span>
@@ -107,23 +107,23 @@
           </div>
           <div class="progress-stats">
             <div class="stat">
-              <span class="stat-label">速度</span>
+              <span class="stat-label" data-i18n="dl_speed">速度</span>
               <span class="stat-value" id="stat-speed">0 B/s</span>
             </div>
             <div class="stat">
-              <span class="stat-label">已下载</span>
+              <span class="stat-label" data-i18n="dl_downloaded">已下载</span>
               <span class="stat-value" id="stat-downloaded">0 B</span>
             </div>
             <div class="stat">
-              <span class="stat-label">总大小</span>
+              <span class="stat-label" data-i18n="dl_total_size">总大小</span>
               <span class="stat-value" id="stat-total">--</span>
             </div>
             <div class="stat">
-              <span class="stat-label">剩余时间</span>
+              <span class="stat-label" data-i18n="dl_eta">剩余时间</span>
               <span class="stat-value" id="stat-eta">--:--</span>
             </div>
             <div class="stat">
-              <span class="stat-label">连接数</span>
+              <span class="stat-label" data-i18n="dl_connections">连接数</span>
               <span class="stat-value" id="stat-threads">0</span>
             </div>
           </div>
@@ -139,36 +139,36 @@
               <rect x="6" y="4" width="4" height="16"/>
               <rect x="14" y="4" width="4" height="16"/>
             </svg>
-            <span id="pause-label">暂停</span>
+            <span id="pause-label" data-i18n="dl_pause">暂停</span>
           </button>
           <button id="settings-btn" class="btn btn-large">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="3"/>
               <path d="M12 1v6m0 6v6m4.22-13.22l4.24-4.24M3.54 20.46l4.24-4.24M20.46 20.46l-4.24-4.24M7.76 7.76L3.54 3.54M23 12h-6m-6 0H1"/>
             </svg>
-            <span>设置</span>
+            <span data-i18n="dl_settings">设置</span>
           </button>
           <button id="save-cache-btn" class="btn btn-large btn-warning" style="display:none;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
             </svg>
-            <span>保存已缓存部分</span>
+            <span data-i18n="dl_save_cached">保存已缓存部分</span>
           </button>
         </div>
 
         <!-- 状态信息 -->
         <div class="status-message" id="status-message">
           <span class="status-indicator" id="status-indicator"></span>
-          <span id="status-text">正在初始化…</span>
+          <span id="status-text" data-i18n="dl_initializing">正在初始化…</span>
         </div>
       </div>
 
       <!-- 设置面板 -->
       <div class="settings-panel" id="settings-panel" style="display:none;">
-        <h3>下载设置</h3>
+        <h3 data-i18n="dl_settings_title">下载设置</h3>
 
         <div class="setting-group">
-          <label>下载线程（连接数）</label>
+          <label data-i18n="dl_setting_threads_label">下载线程（连接数）</label>
           <div class="setting-control">
             <!-- v4.2.7 修复：移除写死的 value="8" 与 oninput 仅改 span，
                  改用实时生效 JS（init 时由 applySettingsToUI 设值）。
@@ -179,78 +179,78 @@
             <input type="range" id="setting-threads" min="1" max="16">
             <span class="setting-value" id="threads-display"></span>
           </div>
-          <p class="setting-hint">连接越多下载越快（aria2 动态分段技术，带宽充裕时自动增开连接）</p>
+          <p class="setting-hint" data-i18n="dl_setting_threads_hint">连接越多下载越快（aria2 动态分段技术，带宽充裕时自动增开连接）</p>
         </div>
 
         <div class="setting-group">
-          <label>文件名称</label>
+          <label data-i18n="dl_setting_filename_label">文件名称</label>
           <div class="setting-control">
             <select id="setting-filename-mode">
-              <option value="auto">自动（按视频标题命名）</option>
-              <option value="custom">自定义名称</option>
+              <option value="auto" data-i18n="dl_setting_filename_auto">自动（按视频标题命名）</option>
+              <option value="custom" data-i18n="dl_setting_filename_custom">自定义名称</option>
             </select>
-            <input type="text" id="setting-custom-name" placeholder="请输入文件名"
+            <input type="text" id="setting-custom-name" placeholder="请输入文件名" data-i18n-placeholder="dl_setting_filename_placeholder"
               style="display:none; margin-top:8px; width:100%;">
           </div>
         </div>
 
         <div class="setting-group">
-          <label>保存位置</label>
+          <label data-i18n="dl_setting_location_label">保存位置</label>
           <div class="setting-control">
             <select id="setting-save-location">
-              <option value="browser">跟随浏览器设置（默认）</option>
-              <option value="ask">每次询问</option>
+              <option value="browser" data-i18n="dl_setting_location_browser">跟随浏览器设置（默认）</option>
+              <option value="ask" data-i18n="dl_setting_location_ask">每次询问</option>
             </select>
           </div>
-          <p class="setting-hint">实际下载目录由 Chrome/Edge 浏览器设置控制</p>
+          <p class="setting-hint" data-i18n="dl_setting_location_hint">实际下载目录由 Chrome/Edge 浏览器设置控制</p>
         </div>
 
         <div class="setting-group">
-          <label>保存形式</label>
+          <label data-i18n="dl_setting_savemode_label">保存形式</label>
           <div class="setting-control">
             <select id="setting-save-mode">
-              <option value="auto">自动保存（下载完成即保存）</option>
-              <option value="manual">手动保存（完成后点击按钮保存）</option>
+              <option value="auto" data-i18n="dl_setting_savemode_auto">自动保存（下载完成即保存）</option>
+              <option value="manual" data-i18n="dl_setting_savemode_manual">手动保存（完成后点击按钮保存）</option>
             </select>
           </div>
         </div>
 
         <div class="setting-group">
-          <label>缓存管理</label>
+          <label data-i18n="dl_setting_cache_label">缓存管理</label>
           <div class="setting-control">
-            <button id="clear-cache-btn" class="btn btn-danger">立即清除缓存</button>
+            <button id="clear-cache-btn" class="btn btn-danger" data-i18n="dl_clear_cache">立即清除缓存</button>
             <label class="checkbox-label">
               <input type="checkbox" id="setting-clear-on-exit" checked>
-              <span>退出页面时自动清除缓存</span>
+              <span data-i18n="dl_setting_cache_onexit">退出页面时自动清除缓存</span>
             </label>
           </div>
         </div>
 
         <div class="setting-group">
-          <label>速度增强</label>
+          <label data-i18n="dl_setting_boost_label">速度增强</label>
           <div class="setting-control">
             <label class="checkbox-label">
               <input type="checkbox" id="setting-speed-boost" checked>
-              <span>开启自适应连接扩展（带宽充裕时自动加速）</span>
+              <span data-i18n="dl_setting_boost_enable">开启自适应连接扩展（带宽充裕时自动加速）</span>
             </label>
           </div>
-          <p class="setting-hint">智能监测带宽利用率，动态增开下载连接提升速度</p>
+          <p class="setting-hint" data-i18n="dl_setting_boost_hint">智能监测带宽利用率，动态增开下载连接提升速度</p>
         </div>
 
         <div class="setting-group">
-          <label>隐私保护</label>
+          <label data-i18n="dl_setting_privacy_label">隐私保护</label>
           <div class="setting-control">
             <label class="checkbox-label">
               <input type="checkbox" id="setting-privacy-mode" checked>
-              <span>隐私模式（历史记录只存域名不存完整 URL）</span>
+              <span data-i18n="dl_setting_privacy_enable">隐私模式（历史记录只存域名不存完整 URL）</span>
             </label>
           </div>
-          <p class="setting-hint">开启后下载历史仅保留来源域名，不泄露完整视频地址</p>
+          <p class="setting-hint" data-i18n="dl_setting_privacy_hint">开启后下载历史仅保留来源域名，不泄露完整视频地址</p>
         </div>
 
         <div class="settings-actions">
-          <button id="settings-save" class="btn btn-primary">保存设置</button>
-          <button id="settings-close" class="btn">关闭</button>
+          <button id="settings-save" class="btn btn-primary" data-i18n="dl_settings_save">保存设置</button>
+          <button id="settings-close" class="btn" data-i18n="dl_settings_close">关闭</button>
         </div>
       </div>
 
@@ -261,6 +261,7 @@
     </div>
   </div>
 
+  <script src="../lib/i18n.js"></script>
   <script src="../lib/net-helpers.js"></script>
   <script src="../lib/download-engine.js"></script>
   <script src="../lib/stream-downloader.js"></script>

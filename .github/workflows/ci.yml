@@ -21,6 +21,8 @@ jobs:
         run: node tests/test-validate.js && node tests/test-merger.js
       - name: 安全回归（P0-3 SSRF 防护）
         run: node tests/test-ssrf-p03.js
+      - name: 国际化门禁（语言包与代码键一致）
+        run: node scripts/i18n-check.js
       - name: 校验 manifest
         run: |
           node -e "const m=require('./manifest.json'); if(!m.manifest_version||!m.version) process.exit(1); console.log('manifest v'+m.version+' OK')"
@@ -43,7 +45,7 @@ jobs:
           # scripts/package.js 依赖 PowerShell 压缩，改用 zip 工具兼容 Linux
           VER=$(node -e "console.log(require('./manifest.json').version)")
           mkdir -p dist
-          zip -r "dist/video-sniffer-${VER}.zip" manifest.json background content icons lib offscreen popup LICENSE README.md -x '*/drm-service/*' '*/node_modules/*' '*/\.*'
+          zip -r "dist/video-sniffer-${VER}.zip" manifest.json _locales background content icons lib offscreen popup LICENSE README.md -x '*/drm-service/*' '*/node_modules/*' '*/\.*'
           sha256sum "dist/video-sniffer-${VER}.zip"
       - name: 上传产物
         uses: actions/upload-artifact@v4

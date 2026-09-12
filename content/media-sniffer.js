@@ -371,11 +371,11 @@
       let title = '';
       try {
         // 直接使用网页标题
-        title = document.title || '未命名视频';
+        title = document.title || t('cs_untitled_video');
         // 去文件名非法字符
         title = title.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim();
-      } catch { title = '未命名视频'; }
-      this._titleCache = title.slice(0, 120) || '未命名视频';
+      } catch { title = t('cs_untitled_video'); }
+      this._titleCache = title.slice(0, 120) || t('cs_untitled_video');
       this._titleCacheTime = now;
       return this._titleCache;
     },
@@ -455,7 +455,7 @@
           return {
             success: false,
             error: 'encrypted-protected',
-            message: '该视频受加密保护，录制会得到黑屏，MSE 拦截拿到的也是加密数据，均无法导出。请使用平台官方离线下载功能',
+            message: t('cs_record_encrypted_detail'),
           };
         }
         
@@ -608,7 +608,7 @@
                 type: 'record-complete',
                 recordId,
                 error: 'no-data',
-                message: '录制未捕获到任何数据。视频可能未播放，或受浏览器输出保护限制',
+                message: t('cs_record_no_data'),
               });
             } catch {}
             return;
@@ -625,7 +625,7 @@
           const ts = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
           const a = document.createElement('a');
           a.href = url;
-          a.download = `录制_${title}_${ts}.${this._recordExt || 'webm'}`;
+          a.download = `${t('cs_record_file_name')}_${title}_${ts}.${this._recordExt || 'webm'}`;
           a.click();
           // v4.2.8：revoke 5s → 5 分钟，对齐 MSE 导出路径 —— 大文件走浏览器
           // 下载管线时 5 秒内可能尚未读完 blob，提前 revoke 会得到截断文件
@@ -868,7 +868,7 @@
       try {
         const limitGb = (this._recordLimitBytes / (1024 * 1024 * 1024)).toFixed(0);
         const div = document.createElement('div');
-        div.textContent = `录制已达 ${limitGb}GB 上限，已自动停止并保存当前已录数据`;
+        div.textContent = t('cs_record_limit', [limitGb]);
         div.style.cssText = 'position:fixed;top:16px;right:16px;z-index:2147483647;'
           + 'background:#FF3B30;color:#fff;padding:12px 20px;border-radius:8px;'
           + 'font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.15);max-width:360px;';

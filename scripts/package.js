@@ -18,6 +18,7 @@ const version = manifest.version;
 // 打包清单：与 .gitignore 对齐，排除敏感/生成物
 const INCLUDE = [
   'manifest.json',
+  '_locales',
   'background',
   'content',
   'content-script',

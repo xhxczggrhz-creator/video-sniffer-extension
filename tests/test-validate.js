@@ -1,6 +1,11 @@
 // 回归测试：内容校验 _validateMagic 的拦截与识别逻辑
 const fs = require('fs');
 const path = require('path');
+// i18n 运行时先行加载（等价于 download.html 里 lib/i18n.js 排在最前的 <script>）：
+// 下面用 new Function 加载的 download-engine.js 里 t() 才能拿到 zh_CN 文案。
+// Node 下 lib/i18n.js 直接读 _locales/zh_CN/messages.json，因此本测试同时
+// 校验了该语言包中内容校验相关键是否存在。
+require('../lib/i18n.js');
 // O-6 搬入 tests/ 子目录后源码路径相对项目根（兼容从项目根或 tests/ 目录运行）
 const src = fs.readFileSync(path.resolve(__dirname, '..', 'lib', 'download-engine.js'), 'utf8');
 const DownloadEngine = new Function(src + '\nreturn DownloadEngine;')();

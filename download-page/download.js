@@ -107,7 +107,7 @@
     if (msg.type === 'record-blackframe') {
       // 画面全黑：录制出的文件没有画面，继续录制毫无意义，立即告知
       document.getElementById('record-status-text').textContent =
-        '警告：画面持续全黑 —— 该视频受加密保护（浏览器强制黑屏输出），无法绕过。录出的文件只有声音没有画面，建议停止录制';
+        t('dl_record_blackframe');
       const stopBtn = document.getElementById('stop-record-btn');
       if (stopBtn) {
         stopBtn.style.background = '#ff3b30';
@@ -117,7 +117,7 @@
     // 关键修复 v2.3：CORS 错误警告 —— canvas 被跨域视频污染，无法录制
     if (msg.type === 'record-cors-error') {
       document.getElementById('record-status-text').textContent =
-        '警告：视频跨域限制（CORS），无法捕获画面。该站点的视频不允许跨域访问，录制只能得到黑屏。建议使用「MSE 捕获」下载';
+        t('dl_record_cors_warning');
       const stopBtn = document.getElementById('stop-record-btn');
       if (stopBtn) {
         stopBtn.style.background = '#ff3b30';
@@ -242,9 +242,9 @@
         last = decodeURIComponent(last.split('?')[0]).slice(0, 60);
         if (/^[a-zA-Z0-9_-]{8,}$/.test(last.replace(/\.\w+$/, ''))) videoName = u.hostname;
         else videoName = last || u.hostname;
-      } catch { videoName = '未命名视频'; }
+      } catch { videoName = t('dl_unnamed_video'); }
     }
-    if (!videoName) videoName = '未命名视频';
+    if (!videoName) videoName = t('dl_unnamed_video');
   }
 
   let engine = null;
@@ -361,11 +361,11 @@
     // 关键修复 v2.3：小文件（<10MB）可能是预览/片段，警告用户
     const isSmallFile = videoSize > 0 && videoSize < 10 * 1024 * 1024;
     if (isSmallFile && !isAudioTrack) {
-      showToast(`警告：文件仅 ${Storage.formatSize(videoSize)}，可能是预览片段或纯视频轨（无音频）。如下载后无法播放，请改用「MSE 捕获」或「录制」`);
+      showToast(t('dl_warn_small_file', [Storage.formatSize(videoSize)]));
     } else if (isAudioTrack) {
-      showToast('注意：这是纯音频轨（无画面，只有声音）。如需视频请返回列表选择带「视频轨」徽章的大文件条目');
+      showToast(t('dl_note_audio_track'));
     } else if (isVideoTrack) {
-      showToast('DASH 视频轨（无声音）开始下载。无声是站点设计而非损坏；需要有声请再下载音频轨合并，或直接使用录制');
+      showToast(t('dl_note_video_track'));
     }
     await engine.start();
     stopKeepalive();   // 下载完成后释放
@@ -383,8 +383,8 @@
     document.getElementById('stop-record-btn').addEventListener('click', async () => {
       const btn = document.getElementById('stop-record-btn');
       btn.disabled = true;
-      btn.querySelector('span').textContent = '正在保存…';
-      document.getElementById('record-status-text').textContent = '正在保存录制文件…';
+      btn.querySelector('span').textContent = t('dl_saving');
+      document.getElementById('record-status-text').textContent = t('dl_record_saving');
       try {
         await chrome.runtime.sendMessage({ type: 'stop-record', recordId });
       } catch {}
@@ -398,7 +398,7 @@
     // 浏览器输出保护无法绕过，MSE 拦截拿到的也是密文，均无法导出，
     // 如实告知用户并引导官方离线下载。
     document.getElementById('record-status-text').textContent =
-      '正在录制…请让源页面视频保持播放。提示：录制为实时捕获，速率≈视频码率，受播放速度限制；受加密保护的内容录制必然黑屏且无合法导出途径，请使用平台官方离线下载';
+      t('dl_record_status_hint');
   }
 
   // ============================================================
@@ -420,7 +420,7 @@
     const formatEl = document.getElementById('video-format');
     if (nameEl) nameEl.textContent = safeDecodeName(videoName);
     if (formatEl) formatEl.textContent = 'MP4';
-    if (statusEl) statusEl.textContent = '准备中…';
+    if (statusEl) statusEl.textContent = t('dl_preparing');
 
     startKeepalive();
 
@@ -431,7 +431,7 @@
       // ============================================================
       if (biliDirectUrl) {
         console.log('[VideoSniffer] 使用B站API直链下载（标准MP4，无需合并）');
-        if (statusEl) statusEl.textContent = '正在下载视频…';
+        if (statusEl) statusEl.textContent = t('dl_downloading_video');
         if (barEl) barEl.style.width = '5%';
 
         // P2 内存优化（v4.2.8）：旧实现 file.arrayBuffer() 把整个视频读进堆，
@@ -442,7 +442,7 @@
         // 临时 OPFS 文件在下载触发 60s 后（与 revokeObjectURL 同窗口）回收。
         const direct = await downloadViaProxy(biliDirectUrl, '', videoReferer, { asFile: true });
         if (!direct || !direct.file || direct.file.size === 0) {
-          throw new Error('视频下载失败，所有策略均失败。可能原因：B站CDN拒绝访问，请尝试先播放视频再下载');
+          throw new Error(t('dl_err_bili_direct_failed'));
         }
         const videoFile = direct.file;
         console.log(`[VideoSniffer] 视频下载成功: ${Storage.formatSize(videoFile.size)}`);
@@ -459,7 +459,7 @@
           if (barEl) barEl.style.width = '95%';
 
           // 触发下载（Blob 引用 OPFS 文件，零整读、零堆拷贝）
-          const safeTitle = safeDecodeName(videoName || 'B站视频').replace(/[<>:"/\\|?*]/g, '_').slice(0, 120);
+          const safeTitle = safeDecodeName(videoName || t('dl_bili_video')).replace(/[<>:"/\\|?*]/g, '_').slice(0, 120);
           const finalBlob = new Blob([videoFile], { type: 'video/mp4' });
           const url = URL.createObjectURL(finalBlob);
           const a = document.createElement('a');
@@ -474,7 +474,7 @@
             removeOpfsTemp(direct.name);
           }, 60000);
 
-          if (statusEl) statusEl.textContent = `下载完成！文件大小: ${Storage.formatSize(finalBlob.size)}`;
+          if (statusEl) statusEl.textContent = t('dl_done_file_size', [Storage.formatSize(finalBlob.size)]);
           if (barEl) { barEl.style.width = '100%'; barEl.style.background = '#34C759'; }
           chrome.runtime.sendMessage({ type: 'unregister-download', downloadId }).catch?.(() => {});
           stopKeepalive();
@@ -487,24 +487,24 @@
       // 下载fMP4视频轨+音频轨，合并为标准MP4
       // ============================================================
       console.log('[VideoSniffer] API直链不可用，降级为DASH合并方案');
-      if (formatEl) formatEl.textContent = 'MP4 (合并)';
+      if (formatEl) formatEl.textContent = t('dl_format_merged');
 
       // 0. 验证 URL 有效性
-      if (!biliVideoUrl) throw new Error('未获取到视频流地址，请刷新页面重试');
+      if (!biliVideoUrl) throw new Error(t('dl_err_no_stream_url'));
 
       // 1. 通过 SW 代理下载视频流
-      if (statusEl) statusEl.textContent = '正在下载视频流…';
+      if (statusEl) statusEl.textContent = t('dl_downloading_video_stream');
       if (barEl) barEl.style.width = '10%';
       let videoBuf = await downloadViaProxy(biliVideoUrl, biliVideoBackupUrl, videoReferer);
       if (!videoBuf || videoBuf.byteLength === 0) {
-        throw new Error('视频流下载失败，所有策略均失败。可能原因：B站CDN拒绝访问，请尝试先播放视频再下载');
+        throw new Error(t('dl_err_bili_stream_failed'));
       }
       console.log(`[VideoSniffer] 视频流下载成功: ${Storage.formatSize(videoBuf.byteLength)}`);
 
       // 2. 通过 SW 代理下载音频流（如果有）
       let audioBuf = null;
       if (biliAudioUrl) {
-        if (statusEl) statusEl.textContent = '正在下载音频流…';
+        if (statusEl) statusEl.textContent = t('dl_downloading_audio_stream');
         if (barEl) barEl.style.width = '40%';
         audioBuf = await downloadViaProxy(biliAudioUrl, biliAudioBackupUrl, videoReferer);
         if (!audioBuf || audioBuf.byteLength === 0) {
@@ -514,7 +514,7 @@
       }
 
       // 3. 合并音视频
-      if (statusEl) statusEl.textContent = '正在合并音视频…';
+      if (statusEl) statusEl.textContent = t('dl_merging_av');
       if (barEl) barEl.style.width = '70%';
 
       let finalBlob;
@@ -538,7 +538,7 @@
       if (barEl) barEl.style.width = '95%';
 
       // 4. 触发下载
-      const safeTitle = safeDecodeName(videoName || 'B站视频').replace(/[<>:"/\\|?*]/g, '_').slice(0, 120);
+      const safeTitle = safeDecodeName(videoName || t('dl_bili_video')).replace(/[<>:"/\\|?*]/g, '_').slice(0, 120);
       const url = URL.createObjectURL(finalBlob);
       const a = document.createElement('a');
       a.href = url;
@@ -548,7 +548,7 @@
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
 
-      if (statusEl) statusEl.textContent = `合并完成！文件大小: ${Storage.formatSize(finalBlob.size)}`;
+      if (statusEl) statusEl.textContent = t('dl_merge_done_file_size', [Storage.formatSize(finalBlob.size)]);
       if (barEl) { barEl.style.width = '100%'; barEl.style.background = '#34C759'; }
 
       // 通知 SW 清理下载记录
@@ -556,8 +556,8 @@
     } catch (err) {
       console.error('[VideoSniffer] B站合并下载失败:', err);
       // 脱敏：错误文本里的 URL 一律替换（B站直链带签名参数，不能外泄到页面）
-      const safeMsg = String(err?.message || '未知错误').replace(/https?:\/\/[^\s'"]+/g, '[URL]');
-      if (statusEl) statusEl.textContent = `下载失败: ${safeMsg}`;
+      const safeMsg = String(err?.message || t('dl_unknown_error')).replace(/https?:\/\/[^\s'"]+/g, '[URL]');
+      if (statusEl) statusEl.textContent = t('dl_download_failed_msg', [safeMsg]);
       if (barEl) { barEl.style.width = '100%'; barEl.style.background = '#FF3B30'; }
       // P1-D（v4.2.8）：B站合并模式没有 engine 实例，setupUI 也未执行，
       // 旧版"失败后点暂停按钮=重试"对本模式完全无效（按钮无监听）——
@@ -574,11 +574,11 @@
     if (!pauseBtn) return;
     pauseBtn.disabled = false;
     const label = document.getElementById('pause-label');
-    if (label) label.textContent = '重试';
+    if (label) label.textContent = t('dl_retry');
     pauseBtn.addEventListener('click', () => {
-      if (label) label.textContent = '重试中…';
+      if (label) label.textContent = t('dl_retrying');
       pauseBtn.disabled = true;
-      if (statusEl) statusEl.textContent = '正在重试…';
+      if (statusEl) statusEl.textContent = t('dl_retry_in_progress');
       // 重新走完整流程（直链策略会因上轮清空 biliDirectUrl 直接进 DASH 合并，
       // 避免在同一失败直链上原地打转）
       initBiliMergeMode();
@@ -710,11 +710,11 @@
   function mergeAvToMp4Blob(videoBuf, audioBuf) {
     const merger = window.__VideoSnifferMerger__;
     if (!merger || typeof merger.mergeAvToMp4 !== 'function') {
-      throw new Error('合并模块未加载（mp4-merger.js 缺失），请重载扩展后重试');
+      throw new Error(t('dl_err_merger_missing'));
     }
     const r = merger.mergeAvToMp4(new Uint8Array(videoBuf), new Uint8Array(audioBuf));
     if (r && r.error) throw new Error(explainMergeError(r.error));
-    if (!r || !r.blob) throw new Error('合并失败：未产出文件');
+    if (!r || !r.blob) throw new Error(t('dl_err_merge_no_output'));
     return r.blob;
   }
 
@@ -733,9 +733,9 @@
 
   function explainMergeError(err) {
     if (err === 'encrypted') {
-      return '该视频受加密保护（pssh/tenc），合并出的文件无法播放。请改用「录制」或平台官方离线下载';
+      return t('dl_err_merge_encrypted');
     }
-    return String(err || '未知合并错误');
+    return String(err || t('dl_unknown_merge_error'));
   }
 
   function updateRecordProgress(data) {
@@ -755,16 +755,16 @@
       if (data.warningType === 'black-screen') {
         // <50KB/s：几乎必然是黑屏内容
         statusText.textContent =
-          '警告：录制速率极低（<50KB/s），视频受加密保护（浏览器强制黑屏输出），MSE 拦截得到的也是密文，均无法导出。建议停止录制，使用平台官方离线下载';
+          t('dl_record_warn_low_rate');
       } else if (data.warningType === 'low-speed') {
         // <200KB/s：可能是 canvas 污染或低码率视频
-        let msg = '警告：录制速率偏低（<200KB/s）。';
+        let msg;
         if (data.canvasTainted) {
-          msg += '检测到视频跨域限制（CORS），画面无法捕获，录制可能只有音频。建议使用 MSE 捕获下载';
+          msg = t('dl_record_warn_cors');
         } else if (data.videoPaused) {
-          msg += '视频似乎未播放，请确保源页面视频正在播放';
+          msg = t('dl_record_warn_paused');
         } else {
-          msg += '可能是视频本身码率较低，或画面静止内容较多。如录出文件无法播放，建议改用 MSE 捕获';
+          msg = t('dl_record_warn_generic');
         }
         statusText.textContent = msg;
       }
@@ -781,24 +781,26 @@
       bar.style.animation = 'none';
       bar.style.background = '#ff3b30';
       bar.style.width = '100%';
-      statusText.textContent = `录制失败：${data.message || '未捕获到任何数据'}。请确保视频正在播放，或改用「MSE 捕获」下载`;
+      statusText.textContent = t('dl_record_failed', [data.message || t('dl_no_data_captured')]);
       btn.disabled = true;
-      btn.querySelector('span').textContent = '失败';
+      btn.querySelector('span').textContent = t('dl_failed');
       return;
     }
     
     bar.style.animation = 'none';
     bar.style.background = '#4caf50';
     bar.style.width = '100%';
-    statusText.textContent =
-      `录制完成！文件「${data.fileName || '录制.webm'}」已保存（${Storage.formatSize(data.size || 0)}）`;
+    statusText.textContent = t('dl_record_done', [
+      data.fileName || t('dl_record_default_name'),
+      Storage.formatSize(data.size || 0),
+    ]);
     btn.disabled = true;
-    btn.querySelector('span').textContent = '已保存';
+    btn.querySelector('span').textContent = t('dl_saved');
 
     Storage.addHistory({
       id: recordId,
-      fileName: data.fileName || '录制.webm',
-      url: '(录制)',
+      fileName: data.fileName || t('dl_record_default_name'),
+      url: t('dl_record_tag'),
       size: data.size || 0,
       status: 'completed',
     }).catch?.(() => {});
@@ -807,8 +809,8 @@
       chrome.notifications.create({
         type: 'basic',
         iconUrl: '../icons/icon128.png',
-        title: '录制完成',
-        message: `「${data.fileName || '录制.webm'}」已保存。`,
+        title: t('dl_notification_record_done'),
+        message: t('dl_notification_record_saved', [data.fileName || t('dl_record_default_name')]),
       }).catch?.(() => {});
     }
   }
@@ -820,7 +822,7 @@
     document.getElementById('video-name').textContent = safeDecodeName(videoName);
     document.getElementById('video-format').textContent = videoFormat.toUpperCase();
     document.getElementById('video-size').textContent =
-      videoSize ? Storage.formatSize(videoSize) : '下载时检测';
+      videoSize ? Storage.formatSize(videoSize) : t('dl_detect_on_download');
     const urlEl = document.getElementById('video-url-display');
     urlEl.textContent = truncateURL(videoUrl, 60);
     urlEl.title = videoUrl;
@@ -1001,8 +1003,8 @@
       const { completed, total: segTotal } = data.segmentProgress;
       // v4.3.16：与 percent 同口径钳制（completed ≤ total）
       const clamped = Math.min(completed, segTotal);
-      document.getElementById('progress-fraction').textContent = `${clamped} / ${segTotal} 段`;
-      document.getElementById('stat-total').textContent = `${segTotal} 段`;
+      document.getElementById('progress-fraction').textContent = t('dl_progress_fraction_segments', [clamped, segTotal]);
+      document.getElementById('stat-total').textContent = t('dl_stat_total_segments', [segTotal]);
     } else {
       document.getElementById('progress-fraction').textContent =
         `${Storage.formatSize(downloaded)} / ${Storage.formatSize(data.total)}`;
@@ -1052,7 +1054,7 @@
       if (sig === _lastTitleSig) return;  // 无变化不重绘
       _lastTitleSig = sig;
 
-      const name = safeDecodeName(videoName || '下载中').slice(0, 40);
+      const name = safeDecodeName(videoName || t('dl_downloading')).slice(0, 40);
       document.title = `${progress}${name}`;
     } catch {}
   }
@@ -1061,7 +1063,7 @@
   function resetTabTitle(suffix = '') {
     try {
       _lastTitleSig = '';
-      const name = safeDecodeName(videoName || '视频下载').slice(0, 40);
+      const name = safeDecodeName(videoName || t('dl_video_download')).slice(0, 40);
       document.title = suffix ? `${suffix} ${name}` : name;
     } catch {}
   }
@@ -1080,30 +1082,30 @@
     document.getElementById('status-indicator').className = 'status-indicator ' + status;
 
     const statusMessages = {
-      'idle': '等待中…',
-      'preparing': '正在准备下载（注册任务、申请存储）…',
-      'probing': '正在探测视频源（服务器响应较慢时最多约 15 秒）…',
-      'manifest': '正在获取流清单（m3u8/mpd）…',
-      'downloading': '正在高速下载…',
-      'paused': '已暂停，点击"继续"恢复下载',
-      'merging': '正在生成最终文件…',
-      'converting': '正在转换封装为 MP4（提升 iPhone/手机兼容性，TS 不转换则手机常无法播放）…',
-      'done': '下载完成！',
-      'error': '下载失败',
+      'idle': t('dl_status_idle'),
+      'preparing': t('dl_status_preparing'),
+      'probing': t('dl_status_probing'),
+      'manifest': t('dl_status_manifest'),
+      'downloading': t('dl_status_downloading'),
+      'paused': t('dl_status_paused'),
+      'merging': t('dl_status_merging'),
+      'converting': t('dl_status_converting'),
+      'done': t('dl_status_done'),
+      'error': t('dl_status_error'),
     };
     document.getElementById('status-text').textContent = statusMessages[status] || status;
 
     // v4.2.7：标签页标题随状态复位（downloading 阶段由 handleProgress 持续更新）
     if (status === 'done') {
-      resetTabTitle('✓ 已完成');
+      resetTabTitle(t('dl_tab_title_done'));
     } else if (status === 'error') {
-      resetTabTitle('✗ 下载失败');
+      resetTabTitle(t('dl_tab_title_failed'));
     } else if (status === 'paused') {
-      resetTabTitle('⏸ 已暂停');
+      resetTabTitle(t('dl_tab_title_paused'));
     } else if (status === 'merging') {
-      resetTabTitle('⏳ 正在合并');
+      resetTabTitle(t('dl_tab_title_merging'));
     } else if (status === 'converting') {
-      resetTabTitle('⏳ 正在转换 MP4');
+      resetTabTitle(t('dl_tab_title_converting'));
     } else if (status === 'downloading') {
       // 进入下载阶段：清掉旧签名，让 handleProgress 重新开始带进度更新
       _lastTitleSig = '';
@@ -1111,17 +1113,17 @@
 
     if (status === 'downloading') {
       pauseBtn.disabled = false;
-      pauseLabel.textContent = '暂停';
+      pauseLabel.textContent = t('dl_pause');
       pauseIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
       saveCacheBtn.style.display = 'none';
     } else if (status === 'paused') {
       pauseBtn.disabled = false;
-      pauseLabel.textContent = '继续';
+      pauseLabel.textContent = t('dl_resume');
       pauseIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
       saveCacheBtn.style.display = 'inline-flex';
     } else if (status === 'done') {
       pauseBtn.disabled = true;
-      pauseLabel.textContent = '已完成';
+      pauseLabel.textContent = t('dl_completed');
       saveCacheBtn.style.display = 'none';
     } else if (status === 'merging' || status === 'converting') {
       pauseBtn.disabled = true;
@@ -1138,7 +1140,7 @@
     document.getElementById('progress-glow').style.left = '100%';
     document.getElementById('progress-percentage').textContent = '100%';
     // v4.2.7：下载完成 → 标签标题复位
-    resetTabTitle('✓ 已完成');
+    resetTabTitle(t('dl_tab_title_done'));
 
     Storage.addHistory({
       id: downloadId,
@@ -1152,14 +1154,14 @@
       chrome.notifications.create({
         type: 'basic',
         iconUrl: '../icons/icon128.png',
-        title: '下载完成',
-        message: `「${result.fileName}」已成功下载。`,
+        title: t('dl_notification_done'),
+        message: t('dl_notification_saved', [result.fileName]),
       }).catch?.(() => {});
     }
 
     if (settings.saveMode === 'manual' && engine?.saveCachedFile) {
       saveModeManualPending = true;
-      showToast('下载完成，点击"保存已缓存部分"按钮保存文件');
+      showToast(t('dl_manual_save_hint'));
     }
 
     // 轨道说明：完成后再次强调，防止用户拿纯音频轨/纯视频轨误判为损坏
@@ -1169,10 +1171,10 @@
     const statusText = document.getElementById('status-text');
     if (isAudioTrack) {
       statusText.textContent =
-        '下载完成！这是纯音频轨（只有声音、无画面，属正常现象）。若双击没反应，请用 VLC / PotPlayer 播放，或改下视频轨条目';
+        t('dl_done_audio_track');
     } else if (isVideoTrack) {
       statusText.textContent =
-        '下载完成！注意：这是 DASH 纯视频轨（无声音，属正常现象）。若播放器无法打开，请用 VLC/PotPlayer 播放，或再下载音频轨合并';
+        t('dl_done_video_track');
     }
   }
 
@@ -1180,21 +1182,21 @@
     if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
     const statusText = document.getElementById('status-text');
     // 脱敏：错误消息中的 URL 替换为 [URL]
-    let safeMsg = String(err.message || '未知错误').replace(/https?:\/\/[^\s'"]+/g, '[URL]');
+    let safeMsg = String(err.message || t('dl_unknown_error')).replace(/https?:\/\/[^\s'"]+/g, '[URL]');
     // v4.2.10 兜底防线：任何路径漏出的原生 abort 文案（Chrome 对不带 reason
     // 的 abort() 给出 "signal is aborted without reason"）不允许原样上屏
     if (err?.name === 'AbortError' || /aborted without reason/i.test(safeMsg)) {
-      safeMsg = '请求超时或被中断，请重试；若持续失败请更换条目或画质';
+      safeMsg = t('dl_err_aborted');
     }
-    statusText.textContent = `出错了：${safeMsg}`;
+    statusText.textContent = t('dl_error_prefix', [safeMsg]);
     // v4.2.7：下载失败 → 标签标题显示失败状态（多任务卡时一眼可见）
-    resetTabTitle('✗ 下载失败');
+    resetTabTitle(t('dl_tab_title_failed'));
     // 显示重试提示
     const pauseBtn = document.getElementById('pause-btn');
     if (pauseBtn) {
       pauseBtn.disabled = false;
       const label = document.getElementById('pause-label');
-      if (label) label.textContent = '重试';
+      if (label) label.textContent = t('dl_retry');
     }
   }
 
@@ -1310,14 +1312,14 @@
     document.getElementById('stat-threads').textContent = engine?.threadCount ?? settings.threadCount;
 
     toggleSettings();
-    showToast('设置已保存');
+    showToast(t('dl_settings_saved'));
   }
 
   async function clearCache() {
     if (engine?.clearCache) {
       await engine.clearCache();
     }
-    showToast('缓存已清除');
+    showToast(t('dl_cache_cleared'));
   }
 
   async function saveCachedFile() {
@@ -1325,11 +1327,11 @@
     const result = await engine.saveCachedFile();
     if (result.success) {
       saveModeManualPending = false;
-      showToast(`已保存：${result.fileName}`);
+      showToast(t('dl_saved_file', [result.fileName]));
       // v4.3.7：缺失分片警告（截断文件无法完整播放）
       if (result.warning) showToast(result.warning);
     } else {
-      showToast(`保存失败：${result.error || '没有可保存的数据'}`);
+      showToast(t('dl_save_failed', [result.error || t('dl_no_data_to_save')]));
     }
   }
 
@@ -1399,26 +1401,32 @@
     }
 
     if (isMemoryStream) {
-      showToast('这是内存流（MSE/blob）地址，下载页无法直接播放。请回原视频页刷新后选择「下载」或「录制」。', 5000);
+      showToast(t('dl_player_memory_stream'), 5000);
     }
     video.onerror = () => {
-      showToast('视频源加载失败（MSE/内存流、地址已失效或防盗链）。请回原视频页刷新后选「下载」或「录制」。', 5000);
+      showToast(t('dl_player_load_failed'), 5000);
     };
     document.getElementById('player-video').preload = 'auto';
     document.getElementById('player-video').controls = true;
     const readyTimeout = setTimeout(() => {
       if (video.readyState === 0) {
         showToast(isMemoryStream
-          ? '视频源 8 秒未就绪：这是内存流（MSE）或已失效的 blob 地址，无法在下载页直接播放。请回原视频页刷新后选「下载」或「录制」。'
-          : '视频源 8 秒未就绪（可能被防盗链拦截或不支持直连）。请回列表换一条目或选「下载」。', 6000);
+          ? t('dl_player_not_ready_memory')
+          : t('dl_player_not_ready_generic'), 6000);
       }
     }, 8000);
     video.addEventListener('loadedmetadata', () => clearTimeout(readyTimeout), { once: true });
     video.addEventListener('error', () => clearTimeout(readyTimeout), { once: true });
     video.src = src;
 
-    document.querySelector('.logo span').textContent = '视频嗅探器 - 预览播放';
-    document.title = `播放中：${safeDecodeName(videoName)}`;
+    // 播放器模式：logo 与标签标题换成播放态文案。
+    // 摘掉 data-i18n：localizeDom 若在本函数之后才跑，会把通用标题覆盖回来。
+    const logoEl = document.querySelector('.logo span');
+    logoEl.removeAttribute('data-i18n');
+    logoEl.textContent = t('dl_player_logo');
+    const titleEl = document.querySelector('title');
+    if (titleEl) titleEl.removeAttribute('data-i18n');
+    document.title = t('dl_player_tab_title', [safeDecodeName(videoName)]);
   }
 
   // ============================================================
@@ -1527,8 +1535,8 @@
     // 此处兜底：让错误可见，用户能立即看到具体原因而非一直卡住。
     const statusText = document.getElementById('status-text');
     if (statusText) {
-      const msg = String(e?.message || e || '未知错误').replace(/https?:\/\/[^\s'"]+/g, '[URL]');
-      statusText.textContent = '初始化失败：' + msg;
+      const msg = String(e?.message || e || t('dl_unknown_error')).replace(/https?:\/\/[^\s'"]+/g, '[URL]');
+      statusText.textContent = t('dl_init_failed', [msg]);
     }
     console.error('[VideoSniffer] init 失败:', e);
   });

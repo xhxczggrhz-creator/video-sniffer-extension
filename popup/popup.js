@@ -1,6 +1,12 @@
 /**
- * 视频嗅探器 - 弹窗逻辑 v2.1
+ * 视频嗅探器 - 弹窗逻辑 v4.4.0
  * 视频列表展示与交互（列表已按价值分数排序，最优结果在最上面）
+ *
+ * v4.4.0：
+ * - 国际化：所有用户可见文案走 t()，语言包见 _locales/
+ * - 借鉴同类扩展（猫抓 / Video DownloadHelper）：
+ *   · 列表搜索过滤 + 排序（条目多时不必再逐条找）
+ *   · 「更多复制方式」：链接 / curl / aria2c / ffmpeg 命令（便于交给外部下载器）
  *
  * 安全加固：
  * - URL 验证：所有操作前校验视频 URL 合法性
@@ -11,10 +17,18 @@
 (function () {
   'use strict';
 
+  // i18n 兜底：i18n.js 未加载时退化为键名，绝不让弹窗白屏
+  const t = (key, subs) => (typeof globalThis.t === 'function' ? globalThis.t(key, subs) : key);
+
   let currentTabId = null;
   let currentTabUrl = null;
   let videos = [];
+  let renderedVideos = [];   // 当前实际渲染顺序（筛选 + 排序后）
+  let filterText = '';
+  let sortMode = 'score';
   let scanTimeout = null;
+  let filterTimer = null;
+  let copyMenuEls = null;
 
   // v4.2.8：与后台 isBlockedIpLiteral 同口径的简化版（弹窗侧字面校验）。
   // 旧版只拦 localhost/127.0.0.1，弹窗放行 10.x/192.168.x/::1 等内网地址
@@ -57,12 +71,31 @@
     currentTabId = tab.id;
     currentTabUrl = tab.url || '';
 
+    await loadPrefs();
+    // #status-text 的初始文案由 JS 写（不能放 data-i18n：localizeDom 会在
+    // DOMContentLoaded 覆盖 JS 已写入的扫描状态）
+    document.getElementById('status-text').textContent = t('popup_scanning');
+
     await loadVideos();
     setupStorageListener();
     setupListeners();
 
     // 触发一次手动扫描（内容脚本可能加载较晚）
     chrome.tabs.sendMessage(currentTabId, { type: 'manual-scan' }).catch?.(() => {});
+  }
+
+  async function loadPrefs() {
+    try {
+      const stored = await chrome.storage.local.get('popupPrefs');
+      const sort = stored?.popupPrefs?.sort;
+      if (typeof sort === 'string') sortMode = sort;
+    } catch {}
+    const sel = document.getElementById('sort-select');
+    if (sel) sel.value = sortMode;
+  }
+
+  function savePrefs() {
+    try { chrome.storage.local.set({ popupPrefs: { sort: sortMode } }); } catch {}
   }
 
   async function loadVideos() {
@@ -91,39 +124,73 @@
     });
   }
 
+  function displayName(video) {
+    return video.name || guessNameFromURL(video.url);
+  }
+
+  function matchesFilter(video, query) {
+    const hay = [video.name, video.url, video.format, video.type, video.quality];
+    return hay.some(v => String(v == null ? '' : v).toLowerCase().includes(query));
+  }
+
+  function sortVideos(list) {
+    const arr = [...list];
+    switch (sortMode) {
+      case 'size': arr.sort((a, b) => (b.size || 0) - (a.size || 0)); break;
+      case 'name': arr.sort((a, b) => displayName(a).localeCompare(displayName(b))); break;
+      case 'type':
+        arr.sort((a, b) => String(a.type || '').localeCompare(String(b.type || ''))
+          || (b.score || 0) - (a.score || 0));
+        break;
+      default: arr.sort((a, b) => (b.score || 0) - (a.score || 0));
+    }
+    return arr;
+  }
+
   function renderVideos() {
     const list = document.getElementById('video-list');
     const emptyState = document.getElementById('empty-state');
     const statusBar = document.getElementById('status-bar');
     const statusText = document.getElementById('status-text');
     const statusDot = statusBar.querySelector('.status-dot');
+    const toolbar = document.getElementById('toolbar');
 
     if (videos.length === 0) {
       list.innerHTML = '';
       emptyState.style.display = 'flex';
       statusBar.style.display = 'none';
+      toolbar.style.display = 'none';
       return;
     }
 
     emptyState.style.display = 'none';
     statusBar.style.display = 'flex';
+    toolbar.style.display = 'flex';
     statusDot.classList.remove('scanning');
     statusDot.classList.add('found');
-    statusText.textContent = `已检测到 ${videos.length} 个视频`;
 
-    // 后台已按分数排序，这里再保险排一次
-    const sorted = [...videos].sort((a, b) => (b.score || 0) - (a.score || 0));
+    const query = filterText.trim().toLowerCase();
+    renderedVideos = sortVideos(query ? videos.filter(v => matchesFilter(v, query)) : videos);
 
-    list.innerHTML = sorted.map((video, index) => createVideoCard(video, index)).join('');
+    statusText.textContent = query
+      ? t('popup_found_filtered', [renderedVideos.length, videos.length])
+      : t('popup_found_count', [videos.length]);
+
+    if (renderedVideos.length === 0) {
+      list.innerHTML = `<div class="filter-empty">${escapeHTML(t('popup_filter_empty'))}</div>`;
+      return;
+    }
+
+    list.innerHTML = renderedVideos.map((video, index) => createVideoCard(video, index)).join('');
     attachCardListeners();
   }
 
   function createVideoCard(video, index) {
-    const name = video.name || guessNameFromURL(video.url);
+    const name = displayName(video);
     // 流媒体清单（m3u8/mpd）显示的 KB 数只是清单文件本身的大小，不是视频
     // 体积 —— 直接展示会让人误以为"35KB 的零碎"而错过真正的完整视频
     const isStreamManifest = video.type === 'stream' && (!video.size || video.size < 1048576);
-    const sizeText = isStreamManifest ? '完整视频(分片下载)' : formatSize(video.size);
+    const sizeText = isStreamManifest ? t('popup_full_video') : formatSize(video.size);
     // format/type 均来自页面嗅探数据（用户可控），渲染前必须转义
     const format = escapeHTML((video.format || 'video').toUpperCase());
     const typeBadge = createTypeBadge(video.type);
@@ -132,35 +199,41 @@
     const isBlobUrl = video.type === 'mse' || (video.url && video.url.startsWith('blob:'));
     const isMseType = isMseCapture || isBlobUrl;
     const isBiliMerged = video.type === 'bilibili-merged';
-    const mseBadge = isMseCapture ? '<span class="video-type-badge mse-capture-badge" title="MSE 数据流拦截：直接截获原始分段，不依赖播放速度">MSE 捕获</span>' : '';
+    const mseBadge = isMseCapture ? `<span class="video-type-badge mse-capture-badge" title="${escapeAttr(t('popup_badge_mse_title'))}">${escapeHTML(t('popup_badge_mse'))}</span>` : '';
     // B站合并下载徽章
-    const biliBadge = isBiliMerged ? '<span class="video-type-badge" style="background:#00a1d6;color:#fff" title="从B站API获取标准MP4直链，直接下载无需合并">B站下载</span>' : '';
+    const biliBadge = isBiliMerged ? `<span class="video-type-badge" style="background:#00a1d6;color:#fff" title="${escapeAttr(t('popup_badge_bili_title'))}">${escapeHTML(t('popup_badge_bili'))}</span>` : '';
 
     // 轨道徽章 + 清晰度 + 受保护标注：
     // B站等 DASH 站点音视频轨分离，同页多条同名条目（视频轨 300MB / 音频轨 12MB），
     // 不标注的话用户极易误下音频轨（"12 分钟视频只有 12MB"的直接根因）
     let trackBadge = '';
     if (video.track === 'video') {
-      trackBadge = '<span class="video-type-badge track-video" title="DASH 纯视频轨：无声音是正常现象（站点音视频分离存储）。下载后可用 VLC 播放，或配合音频轨合并">视频轨·无声</span>';
+      trackBadge = `<span class="video-type-badge track-video" title="${escapeAttr(t('popup_track_video_title'))}">${escapeHTML(t('popup_track_video'))}</span>`;
     } else if (video.track === 'audio') {
-      trackBadge = '<span class="video-type-badge track-audio" title="这是纯音频（无画面）。12 分钟约 11-29MB，与视频轨（同时长数百 MB）差异巨大，请勿误下">音频轨</span>';
+      trackBadge = `<span class="video-type-badge track-audio" title="${escapeAttr(t('popup_track_audio_title'))}">${escapeHTML(t('popup_track_audio'))}</span>`;
     }
     const qualityBadge = video.quality
       ? `<span class="video-type-badge track-quality">${escapeHTML(video.quality)}</span>` : '';
     const protectBadge = video.protected
-      ? '<span class="video-type-badge protected-badge" title="该站点使用私有加密流（如腾讯 cmfv），直链下载的文件无法播放，只能录制或 MSE 捕获">受保护</span>' : '';
+      ? `<span class="video-type-badge protected-badge" title="${escapeAttr(t('popup_protected_title'))}">${escapeHTML(t('popup_protected'))}</span>` : '';
+
+    // v4.4.0 每条都有「更多复制方式」，不必复制后自己拼下载命令
+    const moreBtn = `
+      <button class="btn btn-more" data-action="more" title="${escapeAttr(t('popup_menu_more_title'))}">
+        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+      </button>`;
 
     return `
       <div class="video-card" data-index="${index}">
         <div class="video-card-header">
           ${isMseType ? `
-            <button class="play-btn play-btn-disabled" disabled title="Blob/MSE 视频无法预览播放，请直接下载">
+            <button class="play-btn play-btn-disabled" disabled title="${escapeAttr(t('popup_play_disabled_title'))}">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" opacity="0.4">
                 <path d="M8 5v14l11-7z"/>
               </svg>
             </button>
           ` : `
-            <button class="play-btn" data-action="play" title="预览播放">
+            <button class="play-btn" data-action="play" title="${escapeAttr(t('popup_play_title'))}">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M8 5v14l11-7z"/>
               </svg>
@@ -176,76 +249,79 @@
               ${trackBadge}
               ${qualityBadge}
               ${protectBadge}
-              <span class="video-size">${sizeText}</span>
-              ${durationText ? `<span class="video-size">${durationText}</span>` : ''}
+              <span class="video-size">${escapeHTML(sizeText)}</span>
+              ${durationText ? `<span class="video-size">${escapeHTML(durationText)}</span>` : ''}
             </div>
           </div>
         </div>
         <div class="video-actions">
           ${isBiliMerged ? `
-            <button class="btn btn-primary" data-action="bili-merge-download" style="background:linear-gradient(135deg,#00a1d6,#fb7299)" title="从B站API提取完整音视频流，下载后自动合并为单个MP4文件（有声有画面）">
+            <button class="btn btn-primary" data-action="bili-merge-download" style="background:linear-gradient(135deg,#00a1d6,#fb7299)" title="${escapeAttr(t('popup_merge_title_bili'))}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
               </svg>
-              <span class="btn-label">合并下载</span>
+              <span class="btn-label">${escapeHTML(t('popup_btn_merge_download'))}</span>
             </button>
-            <button class="btn btn-copy" data-action="copy" title="复制视频链接">
+            <button class="btn btn-copy" data-action="copy" title="${escapeAttr(t('popup_copy_title'))}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="9" y="9" width="13" height="13" rx="2"/>
                 <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
               </svg>
-              <span class="btn-label">复制</span>
+              <span class="btn-label">${escapeHTML(t('popup_btn_copy'))}</span>
             </button>
+            ${moreBtn}
           ` : isMseType ? `
             ${isMseCapture ? `
-              <button class="btn btn-mse-download" data-action="mse-download" title="MSE 直下载：截获原始媒体分段，不受播放速度限制">
+              <button class="btn btn-mse-download" data-action="mse-download" title="${escapeAttr(t('popup_mse_download_title'))}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
                 </svg>
-                <span class="btn-label">MSE 下载</span>
+                <span class="btn-label">${escapeHTML(t('popup_btn_mse_download'))}</span>
               </button>
             ` : ''}
             ${isMseCapture && video.track === 'video' ? `
-              <button class="btn btn-mse-merge" data-action="mse-merge-download" title="合并下载：自动配对音视频轨，合并为有声有画的完整 MP4（腾讯/爱奇艺等音视频分离站点适用）">
+              <button class="btn btn-mse-merge" data-action="mse-merge-download" title="${escapeAttr(t('popup_merge_title_mse'))}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M23 7l-7 5 7 5V7z"/>
                   <rect x="1" y="5" width="15" height="14" rx="2"/>
                 </svg>
-                <span class="btn-label">合并下载</span>
+                <span class="btn-label">${escapeHTML(t('popup_btn_merge_download'))}</span>
               </button>
             ` : ''}
-            <button class="btn btn-record" data-action="record" title="录屏模式：捕获播放中的画面">
+            <button class="btn btn-record" data-action="record" title="${escapeAttr(t('popup_record_title'))}">
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <circle cx="12" cy="12" r="6"/>
               </svg>
-              <span class="btn-label">录制</span>
+              <span class="btn-label">${escapeHTML(t('popup_btn_record'))}</span>
             </button>
+            ${moreBtn}
           ` : `
-            <button class="btn btn-copy" data-action="copy" title="复制视频链接">
+            <button class="btn btn-copy" data-action="copy" title="${escapeAttr(t('popup_copy_title'))}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="9" y="9" width="13" height="13" rx="2"/>
                 <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
               </svg>
-              <span class="btn-label">复制</span>
+              <span class="btn-label">${escapeHTML(t('popup_btn_copy'))}</span>
             </button>
-            <button class="btn btn-primary" data-action="download" title="${video.track === 'audio' ? '注意：这是纯音频轨（无画面）' : '普通下载：多线程分段直连下载'}">
+            <button class="btn btn-primary" data-action="download" title="${escapeAttr(video.track === 'audio' ? t('popup_download_audio_title') : t('popup_download_title'))}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
               </svg>
-              <span class="btn-label">${video.track === 'audio' ? '下音频' : '下载'}</span>
+              <span class="btn-label">${escapeHTML(video.track === 'audio' ? t('popup_download_audio') : t('popup_btn_download'))}</span>
             </button>
-            <button class="btn btn-force" data-action="force-download" title="强力下载：携带源页面凭证绕过防盗链">
+            <button class="btn btn-force" data-action="force-download" title="${escapeAttr(t('popup_force_title'))}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
               </svg>
-              <span class="btn-label">强力</span>
+              <span class="btn-label">${escapeHTML(t('popup_btn_force'))}</span>
             </button>
-            <button class="btn btn-record" data-action="record" title="录屏模式：捕获播放中的画面">
+            <button class="btn btn-record" data-action="record" title="${escapeAttr(t('popup_record_title'))}">
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <circle cx="12" cy="12" r="6"/>
               </svg>
-              <span class="btn-label">录制</span>
+              <span class="btn-label">${escapeHTML(t('popup_btn_record'))}</span>
             </button>
+            ${moreBtn}
           `}
         </div>
       </div>
@@ -253,23 +329,24 @@
   }
 
   function createTypeBadge(type) {
+    // Blob / MSE 是语言中立的缩写，保留字面量
     const labels = {
-      'stream': '流媒体',
-      'direct': '直链',
+      'stream': t('popup_badge_stream'),
+      'direct': t('popup_badge_direct'),
       'blob': 'Blob',
-      'mse': 'Blob 流',
+      'mse': 'Blob',
       'mse-capture': 'MSE',
-      'audio': '音频',
-      'iframe': '内嵌',
+      'audio': t('popup_badge_audio'),
+      'iframe': t('popup_badge_iframe'),
     };
     // v4.2.8：hasOwnProperty 校验 —— labels[type] 直取会命中原型链键
     //（type 来自页面嗅探数据、用户可控，如 "constructor"/"toString"），
     // 旧写法在 type 为原型链属性名时取到非字符串值并被渲染
     const label = Object.prototype.hasOwnProperty.call(labels, type)
       ? labels[type]
-      : '视频';
+      : t('popup_badge_video');
     const isBlob = type === 'mse' || type === 'blob';
-    const tip = isBlob ? 'title="Blob/MSE 视频，无法直接下载，请用录制模式"' : '';
+    const tip = isBlob ? `title="${escapeAttr(t('popup_blob_tip'))}"` : '';
     // type 来自页面嗅探数据（用户可控），注入 class/文本前转义
     return `<span class="video-type-badge ${escapeAttr(type || 'direct')}" ${tip}>${escapeHTML(label)}</span>`;
   }
@@ -277,13 +354,13 @@
   function attachCardListeners() {
     document.querySelectorAll('.video-card').forEach(card => {
       const index = parseInt(card.dataset.index);
-      const video = [...videos].sort((a, b) => (b.score || 0) - (a.score || 0))[index];
+      const video = renderedVideos[index];
       if (!video) return;
 
       card.querySelectorAll('[data-action]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          handleAction(btn.dataset.action, video);
+          handleAction(btn.dataset.action, video, btn);
         });
       });
     });
@@ -296,11 +373,11 @@
     try {
       return await chrome.runtime.sendMessage(message);
     } catch (err) {
-      return { error: `通信失败：${err?.message || '后台服务不可用'}` };
+      return { error: t('popup_err_comm', [err?.message || t('popup_err_bg_down')]) };
     }
   }
 
-  async function handleAction(action, video) {
+  async function handleAction(action, video, btnEl) {
     // 确保视频有名称（后台和下载页依赖此字段命名文件）
     if (!video.name) {
       video.name = guessNameFromURL(video.url);
@@ -312,8 +389,8 @@
     const isMseAction = action === 'mse-download' || isMseUrl || isBlobUrl;
 
     // 非特殊协议的操作需要 URL 安全校验
-    if (!isMseAction && !isSafeUrl(video.url) && action !== 'record') {
-      showToast('URL 不合法，拒绝操作');
+    if (!isMseAction && action !== 'record' && action !== 'more' && !isSafeUrl(video.url)) {
+      showToast(t('popup_err_invalid_url'));
       return;
     }
 
@@ -323,10 +400,14 @@
     const msgBase = { video, referer: video.referer || currentTabUrl, tabId: currentTabId };
 
     switch (action) {
+      case 'more':
+        openCopyMenu(btnEl, video);
+        break;
+
       case 'play':
         // Blob/MSE 视频无法在独立播放页打开
         if (isBlobUrl || isMseUrl) {
-          showToast('此视频无法预览播放，请直接下载或录制');
+          showToast(t('popup_toast_no_preview'));
           return;
         }
         {
@@ -338,7 +419,7 @@
 
       case 'mse-download':
         if (!video.captureId) {
-          showToast('缺少捕获 ID，无法导出 MSE 数据');
+          showToast(t('popup_err_no_capture'));
           return;
         }
         {
@@ -350,7 +431,7 @@
             video,
           });
           if (resp?.error) { showToast(resp.error); return; }
-          showToast('正在导出 MSE 捕获数据…');
+          showToast(t('popup_toast_mse_exporting'));
           setTimeout(() => window.close(), 1200);
         }
         break;
@@ -358,7 +439,7 @@
       case 'mse-merge-download':
         // v4.1：音视频轨合并下载
         if (!video.captureId) {
-          showToast('缺少捕获 ID，无法合并下载');
+          showToast(t('popup_err_no_capture_merge'));
           return;
         }
         {
@@ -370,17 +451,13 @@
             video,
           });
           if (mergeResp?.error) { showToast(mergeResp.error); return; }
-          showToast('正在合并音视频轨…请保持视频页打开');
+          showToast(t('popup_toast_merging'));
           setTimeout(() => window.close(), 1200);
         }
         break;
 
       case 'copy':
-        {
-          const r = await safeSend({ type: 'copy-url', url: video.url });
-          if (r?.error) { showToast(r.error); return; }
-          showToast('链接已复制到剪贴板');
-        }
+        await copyText(video.url);
         break;
 
       case 'download':
@@ -413,8 +490,8 @@
           });
           if (r?.error) { showToast(r.error); return; }
           showToast(recordSpeed > 1
-            ? `录制已开始（${recordSpeed}x 加速），请在页面上播放视频`
-            : '录制已开始，请在页面上播放视频');
+            ? t('popup_toast_record_started_speed', [recordSpeed])
+            : t('popup_toast_record_started'));
           setTimeout(() => window.close(), 800);
         }
         break;
@@ -422,7 +499,7 @@
       case 'bili-merge-download':
         // B站下载：通过API获取标准MP4直链，直接下载（无需合并）
         if (!video.biliData?.videoUrl) {
-          showToast('缺少B站视频流地址');
+          showToast(t('popup_err_no_bili'));
           return;
         }
         {
@@ -433,10 +510,112 @@
             tabId: currentTabId,
           });
           if (r?.error) { showToast(r.error); return; }
-          showToast('正在下载B站视频…');
+          showToast(t('popup_toast_bili_downloading'));
           setTimeout(() => window.close(), 1200);
         }
         break;
+    }
+  }
+
+  // ============================================================
+  // v4.4.0 复制：链接 / curl / aria2c / ffmpeg 命令
+  // 借鉴猫抓、Video DownloadHelper 的「复制为命令行」能力：
+  // 嗅探到的地址往往需要带上 Referer 才能被外部下载器拉取。
+  // ============================================================
+
+  // shell 双引号转义（bash/PowerShell 通用够用）
+  function shq(value) {
+    return '"' + String(value == null ? '' : value).replace(/(["\\$`])/g, '\\$1') + '"';
+  }
+
+  function refererOf(video) {
+    return video.referer || currentTabUrl || '';
+  }
+
+  function buildCurl(video) {
+    const ref = refererOf(video);
+    return `curl -L -o ${shq(displayName(video))}${ref ? ' -e ' + shq(ref) : ''} ${shq(video.url)}`;
+  }
+
+  function buildAria2c(video) {
+    const ref = refererOf(video);
+    return `aria2c -x8 -s8 -k1M${ref ? ' --referer=' + shq(ref) : ''} -o ${shq(displayName(video))} ${shq(video.url)}`;
+  }
+
+  function buildFfmpeg(video) {
+    const ref = refererOf(video);
+    // ffmpeg -headers 需要字面量 \r\n（shell 引号内保留反斜杠）
+    const headers = ref ? ' -headers ' + shq('Referer: ' + ref + '\\r\\n') : '';
+    const out = displayName(video).replace(/\.[a-z0-9]{1,5}$/i, '') + '.mp4';
+    return `ffmpeg${headers} -i ${shq(video.url)} -c copy ${shq(out)}`;
+  }
+
+  function closeCopyMenu() {
+    if (!copyMenuEls) return;
+    copyMenuEls.backdrop.remove();
+    copyMenuEls.menu.remove();
+    copyMenuEls = null;
+  }
+
+  function openCopyMenu(btnEl, video) {
+    if (!btnEl) return;
+    closeCopyMenu();
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'menu-backdrop';
+    backdrop.addEventListener('click', closeCopyMenu);
+
+    const menu = document.createElement('div');
+    menu.className = 'copy-menu';
+    const items = [
+      [t('popup_copy_url'), () => video.url],
+      [t('popup_copy_curl'), () => buildCurl(video)],
+      [t('popup_copy_aria2c'), () => buildAria2c(video)],
+      [t('popup_copy_ffmpeg'), () => buildFfmpeg(video)],
+      [t('popup_copy_name'), () => displayName(video)],
+    ];
+    items.forEach(([label, getValue]) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = label;
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeCopyMenu();
+        copyText(getValue());
+      });
+      menu.appendChild(b);
+    });
+
+    document.body.appendChild(backdrop);
+    document.body.appendChild(menu);
+    menu.classList.add('open');
+
+    // fixed 定位 + 按需翻转，避免被 .video-list 的滚动容器裁切
+    const rect = btnEl.getBoundingClientRect();
+    const mw = menu.offsetWidth;
+    const mh = menu.offsetHeight;
+    const left = Math.min(Math.max(6, rect.right - mw), Math.max(6, window.innerWidth - mw - 6));
+    let top = rect.top - mh - 4;
+    if (top < 6) top = Math.min(rect.bottom + 4, window.innerHeight - mh - 6);
+    menu.style.left = left + 'px';
+    menu.style.top = Math.max(6, top) + 'px';
+
+    copyMenuEls = { backdrop, menu };
+  }
+
+  async function copyText(text) {
+    const value = String(text == null ? '' : text);
+    if (!value) return false;
+    try {
+      await navigator.clipboard.writeText(value);
+      showToast(t('popup_toast_copied'));
+      return true;
+    } catch {
+      // 剪贴板 API 不可用时退回后台路径（沿用它已验证的写入实现）
+      const r = await safeSend({ type: 'copy-url', url: value });
+      if (r?.error) { showToast(r.error); return false; }
+      showToast(t('popup_toast_copied'));
+      return true;
     }
   }
 
@@ -446,7 +625,7 @@
       const statusDot = document.querySelector('.status-dot');
       statusDot.classList.remove('found');
       statusDot.classList.add('scanning');
-      statusText.textContent = '正在重新扫描…';
+      statusText.textContent = t('popup_rescanning');
 
       chrome.tabs.sendMessage(currentTabId, { type: 'manual-scan' }).catch?.(() => {});
 
@@ -454,15 +633,43 @@
       scanTimeout = setTimeout(loadVideos, 1500);
     });
 
+    // v4.4.0 搜索 / 排序
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        clearTimeout(filterTimer);
+        filterTimer = setTimeout(() => {
+          filterText = searchInput.value || '';
+          renderVideos();
+        }, 150);
+      });
+    }
+
+    const sortSelect = document.getElementById('sort-select');
+    if (sortSelect) {
+      sortSelect.addEventListener('change', () => {
+        sortMode = sortSelect.value;
+        savePrefs();
+        renderVideos();
+      });
+    }
+
+    // 菜单是 fixed 定位，滚动后位置会失准，直接收起
+    document.getElementById('video-list').addEventListener('scroll', closeCopyMenu, { passive: true });
+    window.addEventListener('resize', closeCopyMenu);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCopyMenu(); });
+
     document.getElementById('clear-btn').addEventListener('click', async () => {
       // v4.2.8：包 try/catch —— 后台不可用时不再抛未处理 rejection
       try {
         await chrome.runtime.sendMessage({ type: 'clear-videos', tabId: currentTabId });
       } catch (err) {
-        showToast(`清除失败：${err?.message || '后台服务不可用'}`);
+        showToast(t('popup_err_clear', [err?.message || t('popup_err_bg_down')]));
         return;
       }
       videos = [];
+      filterText = '';
+      if (searchInput) searchInput.value = '';
       renderVideos();
     });
 
@@ -472,12 +679,12 @@
         try {
           await chrome.runtime.sendMessage({ type: 'privacy-cleanup' });
         } catch (err) {
-          showToast(`清除失败：${err?.message || '后台服务不可用'}`);
+          showToast(t('popup_err_clear', [err?.message || t('popup_err_bg_down')]));
           return;
         }
         videos = [];
         renderVideos();
-        showToast('已清除所有下载痕迹');
+        showToast(t('popup_toast_cleared'));
       });
     }
   }
@@ -494,7 +701,7 @@
   }
 
   function formatSize(bytes) {
-    if (!bytes || bytes === 0) return '大小未知';
+    if (!bytes || bytes === 0) return t('popup_size_unknown');
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -506,9 +713,9 @@
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = Math.floor(seconds % 60);
-    if (h > 0) return `${h}小时${m}分`;
-    if (m > 0) return `${m}分${s}秒`;
-    return `${s}秒`;
+    if (h > 0) return t('popup_dur_hm', [h, m]);
+    if (m > 0) return t('popup_dur_ms', [m, s]);
+    return t('popup_dur_s', [s]);
   }
 
   function guessNameFromURL(url) {
@@ -526,7 +733,7 @@
       }
       return u.hostname;
     } catch {
-      return '未命名视频';
+      return t('popup_name_unnamed');
     }
   }
 

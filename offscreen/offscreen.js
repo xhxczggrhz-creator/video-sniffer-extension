@@ -18,6 +18,9 @@
 (() => {
   'use strict';
 
+  // Node/非扩展上下文兜底（无 chrome.i18n 时返回键名）
+  const t = (typeof globalThis.t === 'function') ? globalThis.t : ((k) => k);
+
   // v4.3.1 修订：上限对齐 mp4-merger 的 800MB 防止 OOM
   // （offscreen document 是网页，内存上限通常 1-2GB，累积 2GB Blob 数组会崩溃）
   const MAX_TOTAL_BYTES = 800 * 1024 * 1024;       // 800MB 总大小上限
@@ -43,11 +46,11 @@
   async function fetchBlobWithTimeout(blobUrl, timeoutMs) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => {
-      ctrl.abort(new Error('Offscreen: blob 读取超时（60s）'));
+      ctrl.abort(new Error(t('off_blob_timeout')));
     }, timeoutMs);
     try {
       const resp = await fetch(blobUrl, { signal: ctrl.signal, cache: 'no-store' });
-      if (!resp.ok) throw new Error(`Offscreen: blob 读取失败 status=${resp.status}`);
+      if (!resp.ok) throw new Error(t('off_blob_failed', [resp.status]));
       return await resp.blob();
     } finally {
       clearTimeout(timer);
@@ -61,12 +64,12 @@
    */
   async function mergeBlobs(blobUrls) {
     if (!Array.isArray(blobUrls) || blobUrls.length === 0) {
-      return { ok: false, error: '空 blob 列表' };
+      return { ok: false, error: t('off_empty_list') };
     }
     // 安全校验：全部必须是 blob: 协议
     for (const u of blobUrls) {
       if (!isSafeBlobUrl(u)) {
-        return { ok: false, error: '非法 URL（仅允许 blob: 协议）' };
+        return { ok: false, error: t('off_bad_url') };
       }
     }
 
@@ -78,13 +81,13 @@
         total += b.size;
         if (total > MAX_TOTAL_BYTES) {
           // 防止内存爆炸：超出立即终止，已读 Blob 留给 GC
-          return { ok: false, error: `合并总大小超限（>${MAX_TOTAL_BYTES}B）` };
+          return { ok: false, error: t('off_size_exceeded', [MAX_TOTAL_BYTES]) };
         }
         blobs.push(b);
       } catch (e) {
         const reason = e?.name === 'AbortError'
-          ? (e?.message || 'blob 读取超时')
-          : (e?.message || 'blob 读取失败');
+          ? (e?.message || t('off_blob_read_timeout'))
+          : (e?.message || t('off_blob_read_failed'));
         return { ok: false, error: reason };
       }
     }
@@ -110,7 +113,7 @@
       const { blobUrls } = msg;
       mergeBlobs(blobUrls)
         .then((r) => sendResponse(r))
-        .catch((e) => sendResponse({ ok: false, error: e?.message || '未知错误' }));
+        .catch((e) => sendResponse({ ok: false, error: e?.message || t('off_unknown') }));
       return true; // 保持异步 sendResponse
     }
 

@@ -1,9 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "视频嗅探器 - 网页视频下载",
-  "version": "4.3.18",
-  "description": "自动嗅探网页视频资源，多线程高速下载（aria2 动态分段技术），支持 HLS/DASH 流媒体、MSE 拦截捕获与音视频轨合并。纯 HTTP 直连，无 P2P，完全隐私。",
+  "default_locale": "zh_CN",
+  "name": "__MSG_ext_name__",
+  "short_name": "__MSG_ext_short_name__",
+  "version": "4.4.0",
+  "description": "__MSG_ext_desc__",
   "author": "VideoSniffer",
+  "homepage_url": "https://github.com/xhxczggrhz-creator/video-sniffer-extension",
 
   "minimum_chrome_version": "111",
 
@@ -31,7 +34,7 @@
 
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "视频嗅探器",
+    "default_title": "__MSG_ext_action_title__",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
@@ -47,6 +50,16 @@
     "128": "icons/icon128.png"
   },
 
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+V",
+        "mac": "Alt+Shift+V"
+      },
+      "description": "__MSG_ext_command_open__"
+    }
+  },
+
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
@@ -57,7 +70,7 @@
     },
     {
       "matches": ["<all_urls>"],
-      "js": ["content/media-sniffer.js", "content/content-script.js"],
+      "js": ["lib/i18n.js", "content/media-sniffer.js", "content/content-script.js"],
       "run_at": "document_idle",
       "all_frames": true
     }

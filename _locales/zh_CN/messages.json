@@ -1,0 +1,1025 @@
+{
+  "ext_action_title": {
+    "message": "视频嗅探器"
+  },
+  "ext_command_open": {
+    "message": "打开视频嗅探器弹窗"
+  },
+  "ext_desc": {
+    "message": "自动嗅探网页视频资源，多线程高速下载（aria2 动态分段技术），支持 HLS/DASH 流媒体、MSE 拦截捕获与音视频轨合并。纯 HTTP 直连，无 P2P，完全隐私。"
+  },
+  "ext_name": {
+    "message": "视频嗅探器 - 网页视频下载"
+  },
+  "ext_short_name": {
+    "message": "视频嗅探器"
+  },
+  "popup_badge_audio": {
+    "message": "音频"
+  },
+  "popup_badge_bili": {
+    "message": "B站下载"
+  },
+  "popup_badge_bili_title": {
+    "message": "从B站API获取标准MP4直链，直接下载无需合并"
+  },
+  "popup_badge_direct": {
+    "message": "直链"
+  },
+  "popup_badge_iframe": {
+    "message": "内嵌"
+  },
+  "popup_badge_mse": {
+    "message": "MSE 捕获"
+  },
+  "popup_badge_mse_title": {
+    "message": "MSE 数据流拦截：直接截获原始分段，不依赖播放速度"
+  },
+  "popup_badge_stream": {
+    "message": "流媒体"
+  },
+  "popup_badge_video": {
+    "message": "视频"
+  },
+  "popup_blob_tip": {
+    "message": "Blob/MSE 视频，无法直接下载，请用录制模式"
+  },
+  "popup_btn_copy": {
+    "message": "复制"
+  },
+  "popup_btn_download": {
+    "message": "下载"
+  },
+  "popup_btn_force": {
+    "message": "强力"
+  },
+  "popup_btn_merge_download": {
+    "message": "合并下载"
+  },
+  "popup_btn_mse_download": {
+    "message": "MSE 下载"
+  },
+  "popup_btn_record": {
+    "message": "录制"
+  },
+  "popup_clear": {
+    "message": "清空列表"
+  },
+  "popup_copy_aria2c": {
+    "message": "复制 aria2c 命令"
+  },
+  "popup_copy_curl": {
+    "message": "复制 curl 命令"
+  },
+  "popup_copy_ffmpeg": {
+    "message": "复制 ffmpeg 命令"
+  },
+  "popup_copy_name": {
+    "message": "复制文件名"
+  },
+  "popup_copy_title": {
+    "message": "复制视频链接"
+  },
+  "popup_copy_url": {
+    "message": "复制链接"
+  },
+  "popup_download_audio": {
+    "message": "下音频"
+  },
+  "popup_download_audio_title": {
+    "message": "注意：这是纯音频轨（无画面）"
+  },
+  "popup_download_title": {
+    "message": "普通下载：多线程分段直连下载"
+  },
+  "popup_dur_hm": {
+    "message": "$1 小时 $2 分"
+  },
+  "popup_dur_ms": {
+    "message": "$1 分 $2 秒"
+  },
+  "popup_dur_s": {
+    "message": "$1 秒"
+  },
+  "popup_empty": {
+    "message": "暂未检测到视频"
+  },
+  "popup_empty_hint": {
+    "message": "在页面上播放视频后，点击右上角刷新按钮"
+  },
+  "popup_err_bg_down": {
+    "message": "后台服务不可用"
+  },
+  "popup_err_clear": {
+    "message": "清除失败：$1"
+  },
+  "popup_err_comm": {
+    "message": "通信失败：$1"
+  },
+  "popup_err_invalid_url": {
+    "message": "URL 不合法，拒绝操作"
+  },
+  "popup_err_no_bili": {
+    "message": "缺少B站视频流地址"
+  },
+  "popup_err_no_capture": {
+    "message": "缺少捕获 ID，无法导出 MSE 数据"
+  },
+  "popup_err_no_capture_merge": {
+    "message": "缺少捕获 ID，无法合并下载"
+  },
+  "popup_filter_empty": {
+    "message": "没有匹配的视频"
+  },
+  "popup_force_title": {
+    "message": "强力下载：携带源页面凭证绕过防盗链"
+  },
+  "popup_found_count": {
+    "message": "已检测到 $1 个视频"
+  },
+  "popup_found_filtered": {
+    "message": "已筛选 $1 / $2 个视频"
+  },
+  "popup_full_video": {
+    "message": "完整视频(分片下载)"
+  },
+  "popup_menu_more_title": {
+    "message": "更多复制方式"
+  },
+  "popup_merge_title_bili": {
+    "message": "从B站API提取完整音视频流，下载后自动合并为单个MP4文件（有声有画面）"
+  },
+  "popup_merge_title_mse": {
+    "message": "合并下载：自动配对音视频轨，合并为有声有画的完整 MP4（腾讯/爱奇艺等音视频分离站点适用）"
+  },
+  "popup_mse_download_title": {
+    "message": "MSE 直下载：截获原始媒体分段，不受播放速度限制"
+  },
+  "popup_name_unnamed": {
+    "message": "未命名视频"
+  },
+  "popup_play_disabled_title": {
+    "message": "Blob/MSE 视频无法预览播放，请直接下载"
+  },
+  "popup_play_title": {
+    "message": "预览播放"
+  },
+  "popup_privacy_cleanup": {
+    "message": "清除所有痕迹"
+  },
+  "popup_privacy_note": {
+    "message": "隐私保护 · 无 P2P"
+  },
+  "popup_protected": {
+    "message": "受保护"
+  },
+  "popup_protected_title": {
+    "message": "该站点使用私有加密流（如腾讯 cmfv），直链下载的文件无法播放，只能录制或 MSE 捕获"
+  },
+  "popup_record_1x": {
+    "message": "1x 原速（有声）"
+  },
+  "popup_record_8x": {
+    "message": "8x（推荐）"
+  },
+  "popup_record_hint": {
+    "message": "加速后实际录制时长 = 视频时长 ÷ N"
+  },
+  "popup_record_speed": {
+    "message": "录制倍速"
+  },
+  "popup_record_title": {
+    "message": "录屏模式：捕获播放中的画面"
+  },
+  "popup_rescan_title": {
+    "message": "重新扫描页面"
+  },
+  "popup_rescanning": {
+    "message": "正在重新扫描…"
+  },
+  "popup_scanning": {
+    "message": "正在嗅探视频…"
+  },
+  "popup_search_placeholder": {
+    "message": "搜索视频…"
+  },
+  "popup_size_unknown": {
+    "message": "大小未知"
+  },
+  "popup_sort_name": {
+    "message": "按名称"
+  },
+  "popup_sort_score": {
+    "message": "智能排序"
+  },
+  "popup_sort_size": {
+    "message": "按大小"
+  },
+  "popup_sort_title": {
+    "message": "排序方式"
+  },
+  "popup_sort_type": {
+    "message": "按类型"
+  },
+  "popup_title": {
+    "message": "视频嗅探器"
+  },
+  "popup_toast_bili_downloading": {
+    "message": "正在下载B站视频…"
+  },
+  "popup_toast_cleared": {
+    "message": "已清除所有下载痕迹"
+  },
+  "popup_toast_copied": {
+    "message": "已复制到剪贴板"
+  },
+  "popup_toast_merging": {
+    "message": "正在合并音视频轨…请保持视频页打开"
+  },
+  "popup_toast_mse_exporting": {
+    "message": "正在导出 MSE 捕获数据…"
+  },
+  "popup_toast_no_preview": {
+    "message": "此视频无法预览播放，请直接下载或录制"
+  },
+  "popup_toast_record_started": {
+    "message": "录制已开始，请在页面上播放视频"
+  },
+  "popup_toast_record_started_speed": {
+    "message": "录制已开始（$1x 加速），请在页面上播放视频"
+  },
+  "popup_track_audio": {
+    "message": "音频轨"
+  },
+  "popup_track_audio_title": {
+    "message": "这是纯音频（无画面）。12 分钟约 11-29MB，与视频轨（同时长数百 MB）差异巨大，请勿误下"
+  },
+  "popup_track_video": {
+    "message": "视频轨·无声"
+  },
+  "popup_track_video_title": {
+    "message": "DASH 纯视频轨：无声音是正常现象（站点音视频分离存储）。下载后可用 VLC 播放，或配合音频轨合并"
+  },
+  "dl_bili_video": {
+    "message": "B站视频"
+  },
+  "dl_cache_cleared": {
+    "message": "缓存已清除"
+  },
+  "dl_clear_cache": {
+    "message": "立即清除缓存"
+  },
+  "dl_completed": {
+    "message": "已完成"
+  },
+  "dl_connections": {
+    "message": "连接数"
+  },
+  "dl_detect_on_download": {
+    "message": "下载时检测"
+  },
+  "dl_done_audio_track": {
+    "message": "下载完成！这是纯音频轨（只有声音、无画面，属正常现象）。若双击没反应，请用 VLC / PotPlayer 播放，或改下视频轨条目"
+  },
+  "dl_done_file_size": {
+    "message": "下载完成！文件大小: $1"
+  },
+  "dl_done_video_track": {
+    "message": "下载完成！注意：这是 DASH 纯视频轨（无声音，属正常现象）。若播放器无法打开，请用 VLC/PotPlayer 播放，或再下载音频轨合并"
+  },
+  "dl_download_failed_msg": {
+    "message": "下载失败: $1"
+  },
+  "dl_downloaded": {
+    "message": "已下载"
+  },
+  "dl_downloading": {
+    "message": "下载中"
+  },
+  "dl_downloading_audio_stream": {
+    "message": "正在下载音频流…"
+  },
+  "dl_downloading_video": {
+    "message": "正在下载视频…"
+  },
+  "dl_downloading_video_stream": {
+    "message": "正在下载视频流…"
+  },
+  "dl_err_aborted": {
+    "message": "请求超时或被中断，请重试；若持续失败请更换条目或画质"
+  },
+  "dl_err_bili_direct_failed": {
+    "message": "视频下载失败，所有策略均失败。可能原因：B站CDN拒绝访问，请尝试先播放视频再下载"
+  },
+  "dl_err_bili_stream_failed": {
+    "message": "视频流下载失败，所有策略均失败。可能原因：B站CDN拒绝访问，请尝试先播放视频再下载"
+  },
+  "dl_err_merge_encrypted": {
+    "message": "该视频受加密保护（pssh/tenc），合并出的文件无法播放。请改用「录制」或平台官方离线下载"
+  },
+  "dl_err_merge_no_output": {
+    "message": "合并失败：未产出文件"
+  },
+  "dl_err_merger_missing": {
+    "message": "合并模块未加载（mp4-merger.js 缺失），请重载扩展后重试"
+  },
+  "dl_err_no_stream_url": {
+    "message": "未获取到视频流地址，请刷新页面重试"
+  },
+  "dl_error_prefix": {
+    "message": "出错了：$1"
+  },
+  "dl_eta": {
+    "message": "剩余时间"
+  },
+  "dl_failed": {
+    "message": "失败"
+  },
+  "dl_format_merged": {
+    "message": "MP4 (合并)"
+  },
+  "dl_init_failed": {
+    "message": "初始化失败：$1"
+  },
+  "dl_initializing": {
+    "message": "正在初始化…"
+  },
+  "dl_loading": {
+    "message": "加载中…"
+  },
+  "dl_manual_save_hint": {
+    "message": "下载完成，点击\"保存已缓存部分\"按钮保存文件"
+  },
+  "dl_merge_done_file_size": {
+    "message": "合并完成！文件大小: $1"
+  },
+  "dl_merging_av": {
+    "message": "正在合并音视频…"
+  },
+  "dl_no_data_captured": {
+    "message": "未捕获到任何数据"
+  },
+  "dl_no_data_to_save": {
+    "message": "没有可保存的数据"
+  },
+  "dl_note_audio_track": {
+    "message": "注意：这是纯音频轨（无画面，只有声音）。如需视频请返回列表选择带「视频轨」徽章的大文件条目"
+  },
+  "dl_note_video_track": {
+    "message": "DASH 视频轨（无声音）开始下载。无声是站点设计而非损坏；需要有声请再下载音频轨合并，或直接使用录制"
+  },
+  "dl_notification_done": {
+    "message": "下载完成"
+  },
+  "dl_notification_record_done": {
+    "message": "录制完成"
+  },
+  "dl_notification_record_saved": {
+    "message": "「$1」已保存。"
+  },
+  "dl_notification_saved": {
+    "message": "「$1」已成功下载。"
+  },
+  "dl_page_title": {
+    "message": "视频嗅探器 - 下载管理"
+  },
+  "dl_pause": {
+    "message": "暂停"
+  },
+  "dl_player_load_failed": {
+    "message": "视频源加载失败（MSE/内存流、地址已失效或防盗链）。请回原视频页刷新后选「下载」或「录制」。"
+  },
+  "dl_player_logo": {
+    "message": "视频嗅探器 - 预览播放"
+  },
+  "dl_player_memory_stream": {
+    "message": "这是内存流（MSE/blob）地址，下载页无法直接播放。请回原视频页刷新后选择「下载」或「录制」。"
+  },
+  "dl_player_not_ready_generic": {
+    "message": "视频源 8 秒未就绪（可能被防盗链拦截或不支持直连）。请回列表换一条目或选「下载」。"
+  },
+  "dl_player_not_ready_memory": {
+    "message": "视频源 8 秒未就绪：这是内存流（MSE）或已失效的 blob 地址，无法在下载页直接播放。请回原视频页刷新后选「下载」或「录制」。"
+  },
+  "dl_player_tab_title": {
+    "message": "播放中：$1"
+  },
+  "dl_preparing": {
+    "message": "准备中…"
+  },
+  "dl_privacy_badge": {
+    "message": "隐私下载 · 无 P2P"
+  },
+  "dl_progress_fraction_segments": {
+    "message": "$1 / $2 段"
+  },
+  "dl_record_blackframe": {
+    "message": "警告：画面持续全黑 —— 该视频受加密保护（浏览器强制黑屏输出），无法绕过。录出的文件只有声音没有画面，建议停止录制"
+  },
+  "dl_record_capturing": {
+    "message": "正在录制画面…"
+  },
+  "dl_record_cors_warning": {
+    "message": "警告：视频跨域限制（CORS），无法捕获画面。该站点的视频不允许跨域访问，录制只能得到黑屏。建议使用「MSE 捕获」下载"
+  },
+  "dl_record_default_name": {
+    "message": "录制.webm"
+  },
+  "dl_record_done": {
+    "message": "录制完成！文件「$1」已保存（$2）"
+  },
+  "dl_record_failed": {
+    "message": "录制失败：$1。请确保视频正在播放，或改用「MSE 捕获」下载"
+  },
+  "dl_record_hint": {
+    "message": "录制的是解码后画面，适用于无法直接下载的流媒体。请在源页面保持视频播放。"
+  },
+  "dl_record_recording": {
+    "message": "录制中"
+  },
+  "dl_record_saving": {
+    "message": "正在保存录制文件…"
+  },
+  "dl_record_status_hint": {
+    "message": "正在录制…请让源页面视频保持播放。提示：录制为实时捕获，速率≈视频码率，受播放速度限制；受加密保护的内容录制必然黑屏且无合法导出途径，请使用平台官方离线下载"
+  },
+  "dl_record_stop": {
+    "message": "停止录制并保存"
+  },
+  "dl_record_tag": {
+    "message": "(录制)"
+  },
+  "dl_record_warn_cors": {
+    "message": "警告：录制速率偏低（<200KB/s）。检测到视频跨域限制（CORS），画面无法捕获，录制可能只有音频。建议使用 MSE 捕获下载"
+  },
+  "dl_record_warn_generic": {
+    "message": "警告：录制速率偏低（<200KB/s）。可能是视频本身码率较低，或画面静止内容较多。如录出文件无法播放，建议改用 MSE 捕获"
+  },
+  "dl_record_warn_low_rate": {
+    "message": "警告：录制速率极低（<50KB/s），视频受加密保护（浏览器强制黑屏输出），MSE 拦截得到的也是密文，均无法导出。建议停止录制，使用平台官方离线下载"
+  },
+  "dl_record_warn_paused": {
+    "message": "警告：录制速率偏低（<200KB/s）。视频似乎未播放，请确保源页面视频正在播放"
+  },
+  "dl_resume": {
+    "message": "继续"
+  },
+  "dl_retry": {
+    "message": "重试"
+  },
+  "dl_retry_in_progress": {
+    "message": "正在重试…"
+  },
+  "dl_retrying": {
+    "message": "重试中…"
+  },
+  "dl_save_cached": {
+    "message": "保存已缓存部分"
+  },
+  "dl_save_failed": {
+    "message": "保存失败：$1"
+  },
+  "dl_saved": {
+    "message": "已保存"
+  },
+  "dl_saved_file": {
+    "message": "已保存：$1"
+  },
+  "dl_saving": {
+    "message": "正在保存…"
+  },
+  "dl_setting_boost_enable": {
+    "message": "开启自适应连接扩展（带宽充裕时自动加速）"
+  },
+  "dl_setting_boost_hint": {
+    "message": "智能监测带宽利用率，动态增开下载连接提升速度"
+  },
+  "dl_setting_boost_label": {
+    "message": "速度增强"
+  },
+  "dl_setting_cache_label": {
+    "message": "缓存管理"
+  },
+  "dl_setting_cache_onexit": {
+    "message": "退出页面时自动清除缓存"
+  },
+  "dl_setting_filename_auto": {
+    "message": "自动（按视频标题命名）"
+  },
+  "dl_setting_filename_custom": {
+    "message": "自定义名称"
+  },
+  "dl_setting_filename_label": {
+    "message": "文件名称"
+  },
+  "dl_setting_filename_placeholder": {
+    "message": "请输入文件名"
+  },
+  "dl_setting_location_ask": {
+    "message": "每次询问"
+  },
+  "dl_setting_location_browser": {
+    "message": "跟随浏览器设置（默认）"
+  },
+  "dl_setting_location_hint": {
+    "message": "实际下载目录由 Chrome/Edge 浏览器设置控制"
+  },
+  "dl_setting_location_label": {
+    "message": "保存位置"
+  },
+  "dl_setting_privacy_enable": {
+    "message": "隐私模式（历史记录只存域名不存完整 URL）"
+  },
+  "dl_setting_privacy_hint": {
+    "message": "开启后下载历史仅保留来源域名，不泄露完整视频地址"
+  },
+  "dl_setting_privacy_label": {
+    "message": "隐私保护"
+  },
+  "dl_setting_savemode_auto": {
+    "message": "自动保存（下载完成即保存）"
+  },
+  "dl_setting_savemode_label": {
+    "message": "保存形式"
+  },
+  "dl_setting_savemode_manual": {
+    "message": "手动保存（完成后点击按钮保存）"
+  },
+  "dl_setting_threads_hint": {
+    "message": "连接越多下载越快（aria2 动态分段技术，带宽充裕时自动增开连接）"
+  },
+  "dl_setting_threads_label": {
+    "message": "下载线程（连接数）"
+  },
+  "dl_settings": {
+    "message": "设置"
+  },
+  "dl_settings_close": {
+    "message": "关闭"
+  },
+  "dl_settings_save": {
+    "message": "保存设置"
+  },
+  "dl_settings_saved": {
+    "message": "设置已保存"
+  },
+  "dl_settings_title": {
+    "message": "下载设置"
+  },
+  "dl_speed": {
+    "message": "速度"
+  },
+  "dl_stat_total_segments": {
+    "message": "$1 段"
+  },
+  "dl_status_converting": {
+    "message": "正在转换封装为 MP4（提升 iPhone/手机兼容性，TS 不转换则手机常无法播放）…"
+  },
+  "dl_status_done": {
+    "message": "下载完成！"
+  },
+  "dl_status_downloading": {
+    "message": "正在高速下载…"
+  },
+  "dl_status_error": {
+    "message": "下载失败"
+  },
+  "dl_status_idle": {
+    "message": "等待中…"
+  },
+  "dl_status_manifest": {
+    "message": "正在获取流清单（m3u8/mpd）…"
+  },
+  "dl_status_merging": {
+    "message": "正在生成最终文件…"
+  },
+  "dl_status_paused": {
+    "message": "已暂停，点击\"继续\"恢复下载"
+  },
+  "dl_status_preparing": {
+    "message": "正在准备下载（注册任务、申请存储）…"
+  },
+  "dl_status_probing": {
+    "message": "正在探测视频源（服务器响应较慢时最多约 15 秒）…"
+  },
+  "dl_tab_title_converting": {
+    "message": "⏳ 正在转换 MP4"
+  },
+  "dl_tab_title_done": {
+    "message": "✓ 已完成"
+  },
+  "dl_tab_title_failed": {
+    "message": "✗ 下载失败"
+  },
+  "dl_tab_title_merging": {
+    "message": "⏳ 正在合并"
+  },
+  "dl_tab_title_paused": {
+    "message": "⏸ 已暂停"
+  },
+  "dl_total_size": {
+    "message": "总大小"
+  },
+  "dl_unknown_error": {
+    "message": "未知错误"
+  },
+  "dl_unknown_merge_error": {
+    "message": "未知合并错误"
+  },
+  "dl_unnamed_video": {
+    "message": "未命名视频"
+  },
+  "dl_video_download": {
+    "message": "视频下载"
+  },
+  "dl_warn_small_file": {
+    "message": "警告：文件仅 $1，可能是预览片段或纯视频轨（无音频）。如下载后无法播放，请改用「MSE 捕获」或「录制」"
+  },
+  "sw_action_title": {
+    "message": "视频嗅探器"
+  },
+  "sw_action_title_count": {
+    "message": "视频嗅探器 - 检测到 $1 个视频"
+  },
+  "sw_badurl": {
+    "message": "视频 URL 不合法，拒绝下载"
+  },
+  "sw_badurl_bili": {
+    "message": "B站视频流 URL 不合法"
+  },
+  "sw_badurl_copy": {
+    "message": "URL 不合法，拒绝复制"
+  },
+  "sw_badurl_generic": {
+    "message": "URL 不合法"
+  },
+  "sw_badurl_key": {
+    "message": "密钥 URL 不合法"
+  },
+  "sw_badurl_play": {
+    "message": "视频 URL 不合法，拒绝播放"
+  },
+  "sw_bili_video": {
+    "message": "B站视频"
+  },
+  "sw_capture_stale": {
+    "message": "捕获已随页面刷新失效，请重新播放后点击最新条目"
+  },
+  "sw_ctx_rescan": {
+    "message": "重新嗅探本页视频"
+  },
+  "sw_diag_intercepted": {
+    "message": "（诊断：网络可达，请求被浏览器安全机制拦截——建议重启浏览器，若仍复现请把本行日志发往开发者）"
+  },
+  "sw_diag_network_fail": {
+    "message": "（诊断：网络层失败）"
+  },
+  "sw_dl_stalled": {
+    "message": "下载停滞（连续 30 秒无新数据）——服务器中断响应"
+  },
+  "sw_dl_stalled_short": {
+    "message": "下载停滞（服务器中断响应）"
+  },
+  "sw_dns_private": {
+    "message": "该域名解析到了内网/保留地址，已按 SSRF 防护拒绝"
+  },
+  "sw_dns_timeout": {
+    "message": "DNS 安全校验超时：本机 DNS 解析该域名无响应（请检查系统 DNS/代理软件后重试）"
+  },
+  "sw_key_bad_length": {
+    "message": "密钥长度异常: $1"
+  },
+  "sw_key_http": {
+    "message": "密钥 HTTP $1"
+  },
+  "sw_key_timeout": {
+    "message": "密钥请求超时"
+  },
+  "sw_manifest_connect_failed": {
+    "message": "网络连接失败：无法连接清单服务器（$1）$2"
+  },
+  "sw_manifest_timeout": {
+    "message": "清单请求超时（服务器无响应）"
+  },
+  "sw_no_active_tab": {
+    "message": "无活动标签页"
+  },
+  "sw_preview_unsupported": {
+    "message": "此视频类型无法预览播放"
+  },
+  "sw_probe_timeout": {
+    "message": "探测超时（服务器无响应）"
+  },
+  "sw_proxy_timeout": {
+    "message": "代理请求超时（$1 秒）——服务器无响应"
+  },
+  "sw_quality_dolby": {
+    "message": "杜比视界"
+  },
+  "sw_quality_generic": {
+    "message": "清晰度$1"
+  },
+  "sw_quality_high_bitrate": {
+    "message": "1080P高码率"
+  },
+  "sw_recording_video": {
+    "message": "录制视频"
+  },
+  "sw_rule_pool_exhausted": {
+    "message": "规则 ID 池耗尽，请稍后重试"
+  },
+  "sw_seg_stalled": {
+    "message": "分段下载停滞（连续 30 秒无新数据）——服务器中断响应"
+  },
+  "sw_seg_stalled_short": {
+    "message": "分段下载停滞（服务器中断响应）"
+  },
+  "sw_session_unavailable_download": {
+    "message": "浏览器会话存储不可用，无法安全传递下载地址，请重试或检查浏览器存储设置"
+  },
+  "sw_session_unavailable_params": {
+    "message": "浏览器会话存储不可用，无法安全传递下载参数，请重试或检查浏览器存储设置"
+  },
+  "sw_session_unavailable_play": {
+    "message": "浏览器会话存储不可用，无法安全传递播放地址，请重试"
+  },
+  "sw_target_site": {
+    "message": "目标网站"
+  },
+  "sw_track_audio": {
+    "message": "（音频轨）"
+  },
+  "sw_track_video_silent": {
+    "message": "（视频轨·无声）"
+  },
+  "sw_untitled": {
+    "message": "未命名视频"
+  },
+  "cs_merge_encrypted": {
+    "message": "该流为加密内容（付费内容），MSE 数据本身是密文，导出无法播放。免费内容可正常下载"
+  },
+  "cs_merge_failed": {
+    "message": "合并失败，请重试"
+  },
+  "cs_merge_failed_detail": {
+    "message": "音视频合并失败，已降级：请分别下载视频轨和音频轨后手动合并"
+  },
+  "cs_merge_no_audio": {
+    "message": "未找到配对的音频轨，无法合并。请直接下载视频轨（无声）或改用录制"
+  },
+  "cs_merge_not_ready": {
+    "message": "合并器未就绪，请刷新页面后重试"
+  },
+  "cs_merge_timeout": {
+    "message": "音视频合并请求超时，请确保视频已开始播放后再试"
+  },
+  "cs_merge_transfer_failed": {
+    "message": "合并数据传输失败"
+  },
+  "cs_missing_capture_id": {
+    "message": "缺少 captureId"
+  },
+  "cs_mse_ad_cleared": {
+    "message": "检测到内容切换（广告→正片），已清除广告数据，请重新点击 MSE 下载"
+  },
+  "cs_mse_captured_video": {
+    "message": "MSE 捕获视频"
+  },
+  "cs_mse_empty": {
+    "message": "MSE 捕获数据为空，请先播放视频再下载"
+  },
+  "cs_mse_not_found": {
+    "message": "未找到 MSE 捕获数据，请确保视频已开始播放"
+  },
+  "cs_mse_rate_limited": {
+    "message": "MSE 数据请求过于频繁，请稍候几秒再试"
+  },
+  "cs_mse_timeout": {
+    "message": "MSE 数据请求超时，请确保视频已开始播放后再试"
+  },
+  "cs_mse_transfer_failed": {
+    "message": "数据传输失败"
+  },
+  "cs_mse_truncated": {
+    "message": "该捕获已达大小上限，导出的文件不含超出部分（视频可能不完整）"
+  },
+  "cs_no_video_element": {
+    "message": "页面上没有视频元素"
+  },
+  "cs_no_video_element_found": {
+    "message": "页面上没有找到视频元素"
+  },
+  "cs_record_encrypted": {
+    "message": "该视频受加密保护，录制会黑屏且无合法导出途径，请使用平台官方离线下载"
+  },
+  "cs_record_encrypted_detail": {
+    "message": "该视频受加密保护，录制会得到黑屏，MSE 拦截拿到的也是加密数据，均无法导出。请使用平台官方离线下载功能"
+  },
+  "cs_record_file_name": {
+    "message": "录制"
+  },
+  "cs_record_limit": {
+    "message": "录制已达 $1GB 上限，已自动停止并保存当前已录数据"
+  },
+  "cs_record_no_data": {
+    "message": "录制未捕获到任何数据。视频可能未播放，或受浏览器输出保护限制"
+  },
+  "cs_request_data_sent": {
+    "message": "已请求数据传输"
+  },
+  "cs_request_merge_sent": {
+    "message": "已请求音视频合并导出"
+  },
+  "cs_save_failed": {
+    "message": "保存失败，请重试"
+  },
+  "cs_saved_file": {
+    "message": "已保存: $1"
+  },
+  "cs_saving": {
+    "message": "正在保存 $1 数据…"
+  },
+  "cs_sniffer_not_ready": {
+    "message": "嗅探器未就绪"
+  },
+  "cs_sniffer_uninitialized": {
+    "message": "嗅探器未初始化"
+  },
+  "cs_untitled_video": {
+    "message": "未命名视频"
+  },
+  "de_bg_failed": {
+    "message": "后台处理失败"
+  },
+  "de_block_font": {
+    "message": "内容是字体文件（woff/woff2），不是视频，已拦截"
+  },
+  "de_block_html": {
+    "message": "内容是 HTML 网页（链接可能已失效或需要登录），已拦截"
+  },
+  "de_block_image": {
+    "message": "内容是图片，不是视频，已拦截"
+  },
+  "de_block_json": {
+    "message": "内容是 JSON 数据（多为防盗链/错误响应），已拦截"
+  },
+  "de_block_pdf": {
+    "message": "内容是 PDF 文档，不是视频，已拦截"
+  },
+  "de_block_zip": {
+    "message": "内容是 zip 压缩包，不是视频，已拦截"
+  },
+  "de_conn_timeout": {
+    "message": "连接超时，无数据流入"
+  },
+  "de_opfs_unavailable": {
+    "message": "OPFS 不可用，无法读取代理分段"
+  },
+  "de_probe_timeout": {
+    "message": "探测超时"
+  },
+  "de_proxy_probe_timeout": {
+    "message": "代理探测请求超时（$1 秒）——SW 无响应"
+  },
+  "de_proxy_seg_timeout": {
+    "message": "代理分段请求超时（$1 秒）——SW 无响应"
+  },
+  "de_range_misalign": {
+    "message": "CDN 返回范围错位（请求 $1，实际 $2），已拒绝写入"
+  },
+  "de_req_timeout": {
+    "message": "请求超时（$1 秒）——服务器无响应"
+  },
+  "de_seg_no_data": {
+    "message": "分段无数据/短读 ($1/$2)"
+  },
+  "de_seg_proxy_timeout": {
+    "message": "分段代理请求超时（65 秒）——SW 繁忙或无响应，稍后自动重试"
+  },
+  "de_seg_short_read": {
+    "message": "分段短读 ($1/$2 @ $3)，已拒绝写入"
+  },
+  "de_seg_stall": {
+    "message": "分段下载停滞（$1 秒无新数据，服务器中断响应）"
+  },
+  "de_seg_timeout": {
+    "message": "分段下载超时（$1 秒）"
+  },
+  "de_segments_failed": {
+    "message": "$1 个分段反复下载失败（CDN 限流或拒绝）。已中止，未生成损坏文件 —— 请稍后重试，或减少同时下载的任务数"
+  },
+  "de_srv_no_range": {
+    "message": "服务器不支持 Range 分段"
+  },
+  "de_sw_timeout": {
+    "message": "SW 响应超时（$1s）——可能 SW 休眠或繁忙，type=$2"
+  },
+  "de_url_invalid": {
+    "message": "URL 不合法：仅支持 http/https 协议，禁止本地地址"
+  },
+  "de_write_failed": {
+    "message": "文件写入失败: $1"
+  },
+  "sd_aes_key_failed": {
+    "message": "AES-128 密钥获取失败，请尝试录制模式"
+  },
+  "sd_bg_failed": {
+    "message": "后台处理失败"
+  },
+  "sd_dash_no_video": {
+    "message": "DASH 清单中没有视频轨道"
+  },
+  "sd_dash_parse_failed": {
+    "message": "DASH 清单解析失败"
+  },
+  "sd_key_http": {
+    "message": "密钥 HTTP $1"
+  },
+  "sd_key_len_abnormal": {
+    "message": "密钥长度异常: $1"
+  },
+  "sd_key_timeout": {
+    "message": "密钥获取超时（15 秒）"
+  },
+  "sd_manifest_cors": {
+    "message": "清单获取失败：服务器拒绝跨域访问或无响应。请重试，或回到列表换一个条目/画质下载"
+  },
+  "sd_manifest_failed": {
+    "message": "清单获取失败：$1"
+  },
+  "sd_manifest_http": {
+    "message": "获取清单失败 HTTP $1"
+  },
+  "sd_manifest_timeout": {
+    "message": "清单获取超时（15 秒）——服务器响应过慢或网络受限，请重试或换一个条目/画质"
+  },
+  "sd_no_segments": {
+    "message": "清单中没有找到可下载的分片"
+  },
+  "sd_opfs_unavailable": {
+    "message": "本环境 OPFS 不可用，无法读取代理分片"
+  },
+  "sd_playlist_deep": {
+    "message": "播放列表嵌套过深"
+  },
+  "sd_proxy_no_opfs": {
+    "message": "代理未返回 OPFS 文件句柄"
+  },
+  "sd_sample_aes_unsupported": {
+    "message": "此视频使用了不支持的加密方式（SAMPLE-AES），请使用录制模式"
+  },
+  "sd_seg_cors": {
+    "message": "分片获取失败：服务器拒绝跨域访问（Failed to fetch）"
+  },
+  "sd_seg_key_failed": {
+    "message": "分段密钥获取失败"
+  },
+  "sd_seg_len_check": {
+    "message": "分片长度校验失败（预期 $1，实际 $2）"
+  },
+  "sd_seg_timeout": {
+    "message": "分片获取超时（30 秒）——服务器响应过慢或连接被中断"
+  },
+  "sd_segments_failed": {
+    "message": "$1 个分片反复下载失败（共 $2 段），已中止，未生成损坏文件。建议减少并发任务数后重试"
+  },
+  "sd_sw_timeout": {
+    "message": "SW 响应超时（$1s）——可能 SW 休眠或繁忙，type=$2"
+  },
+  "sd_url_invalid": {
+    "message": "URL 不合法：仅支持 http/https 协议，禁止本地地址"
+  },
+  "sd_write_failed": {
+    "message": "文件写入失败: $1"
+  },
+  "nh_bg_failed": {
+    "message": "后台处理失败"
+  },
+  "nh_sw_timeout": {
+    "message": "SW 响应超时（$1s）——可能 SW 休眠或繁忙，type=$2"
+  },
+  "off_bad_url": {
+    "message": "非法 URL（仅允许 blob: 协议）"
+  },
+  "off_blob_failed": {
+    "message": "Offscreen: blob 读取失败 status=$1"
+  },
+  "off_blob_read_failed": {
+    "message": "blob 读取失败"
+  },
+  "off_blob_read_timeout": {
+    "message": "blob 读取超时"
+  },
+  "off_blob_timeout": {
+    "message": "Offscreen: blob 读取超时（60s）"
+  },
+  "off_empty_list": {
+    "message": "空 blob 列表"
+  },
+  "off_size_exceeded": {
+    "message": "合并总大小超限（>$1B）"
+  },
+  "off_unknown": {
+    "message": "未知错误"
+  }
+}

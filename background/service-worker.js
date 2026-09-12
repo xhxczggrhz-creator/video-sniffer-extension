@@ -34,6 +34,11 @@ import {
   COOKIE_SNAPSHOT_TTL_MS,
 } from '../lib/constants.js';
 
+// i18n：SW 无 DOM，lib/i18n.js 仅以侧效应把 VSI18N / t 挂到 globalThis 上。
+// 译文缺失时 t() 返回键名本身（开发期信号，绝不返回空串）。
+import '../lib/i18n.js';
+const t = globalThis.VSI18N.t;
+
 // ============================================================
 // 状态
 // ============================================================
@@ -221,14 +226,17 @@ async function dnsSafeUrl(url) {
 // v4.2.9：查询某 URL 当前被 DNS 复查拒绝的真实原因（供 proxy handler
 // 在 ensureSafeRemote 拒绝时给出可读错误，替代一律"URL 不合法"）。
 function dnsBlockReason(url) {
+  // tests/test-dns-v429.js 会把本函数所在区段截取进独立沙箱运行（沙箱内没有
+  // lib/i18n.js，t 不存在），故用 typeof 探测后回落中文原文，两处行为一致。
+  const tr = (key, fallback) => (typeof t === 'function' ? t(key) : fallback);
   try {
     const host = (new URL(url).hostname || '').replace(/^\[|\]$/g, '');
     const c = DNS_CACHE.get(host);
     if (c?.timeout && Date.now() - c.ts < DNS_TIMEOUT_TTL) {
-      return 'DNS 安全校验超时：本机 DNS 解析该域名无响应（请检查系统 DNS/代理软件后重试）';
+      return tr('sw_dns_timeout', 'DNS 安全校验超时：本机 DNS 解析该域名无响应（请检查系统 DNS/代理软件后重试）');
     }
     if (c && !c.safe && Date.now() - c.ts < DNS_CACHE_TTL) {
-      return '该域名解析到了内网/保留地址，已按 SSRF 防护拒绝';
+      return tr('sw_dns_private', '该域名解析到了内网/保留地址，已按 SSRF 防护拒绝');
     }
   } catch {}
   return null;
@@ -823,7 +831,7 @@ async function fetchWithTimeout(url, opts, ms, bodyFn) {
   // 版本以 TypeError 形态抛出，映射失配时原生英文文案会经消息总线漏到下载页
   // 上屏。从源头带 reason，任何漏网路径也只会显示中文超时说明。
   const timer = setTimeout(() => ctrl.abort(
-    new Error(`代理请求超时（${Math.round(ms / 1000)} 秒）——服务器无响应`)), ms);
+    new Error(t('sw_proxy_timeout', [Math.round(ms / 1000)]))), ms);
   try {
     const resp = await fetch(url, { ...opts, signal: ctrl.signal });
     return await bodyFn(resp);
@@ -877,8 +885,8 @@ chrome.webRequest.onBeforeRequest.addListener(safe((details) => {
 // "1080p" —— 它实际是 192kbps 音频轨，用户按清晰度标签误下音频轨的帮凶）
 const BILI_QUALITY_MAP = {
   '30016': '360p', '30032': '480p', '30064': '720p', '30074': '720p60',
-  '30080': '1080p', '300112': '1080P高码率', '300116': '1080p60',
-  '300120': '4K', '300125': 'HDR', '300126': '杜比视界', '300127': '8K',
+  '30080': '1080p', '300112': t('sw_quality_high_bitrate'), '300116': '1080p60',
+  '300120': '4K', '300125': 'HDR', '300126': t('sw_quality_dolby'), '300127': '8K',
 };
 
 // B站音频轨码（文件名 {cid}-1-{302xx}.m4s）
@@ -905,7 +913,7 @@ function guessQualityFromUrl(url) {
   const qid = getBiliQualityId(url);
   if (!qid) return null;
   if (BILI_AUDIO_CODES.has(qid)) return null;          // 音频码不是清晰度
-  return BILI_QUALITY_MAP[qid] || (qid.startsWith('300') ? `清晰度${qid}` : null);
+  return BILI_QUALITY_MAP[qid] || (qid.startsWith('300') ? t('sw_quality_generic', [qid]) : null);
 }
 
 // 从流媒体清单 URL 猜画质。视频站点/CDN 普遍把分辨率写进路径
@@ -1188,7 +1196,7 @@ function guessNameFromUrl(url) {
     }
     return u.hostname;
   } catch {
-    return '未命名视频';
+    return t('sw_untitled');
   }
 }
 
@@ -1211,13 +1219,13 @@ async function fillNameFromTab(tabId, videoInfo) {
     const tab = await chrome.tabs.get(tabId);
     if (tab.title) {
       const cleaned = cleanTitle(tab.title);
-      if (cleaned && cleaned !== '未命名视频') {
+      if (cleaned && cleaned !== t('sw_untitled')) {
         // DASH 双轨标注：B站等站点音/视频轨分离，视频轨无音是正常现象，
         // 标注出来防止用户误判为"文件损坏"
         if (videoInfo.track === 'video') {
-          videoInfo.name = `${cleaned}（视频轨·无声）`;
+          videoInfo.name = `${cleaned}${t('sw_track_video_silent')}`;
         } else if (videoInfo.track === 'audio') {
-          videoInfo.name = `${cleaned}（音频轨）`;
+          videoInfo.name = `${cleaned}${t('sw_track_audio')}`;
         } else {
           videoInfo.name = cleaned;
         }
@@ -1362,10 +1370,10 @@ function updateBadge(tabId) {
     if (count > 0) {
       chrome.action.setBadgeBackgroundColor({ color: '#FF3B30', tabId });
       chrome.action.setBadgeText({ text: count > 99 ? '99+' : String(count), tabId });
-      chrome.action.setTitle({ title: `视频嗅探器 - 检测到 ${count} 个视频`, tabId });
+      chrome.action.setTitle({ title: t('sw_action_title_count', [count]), tabId });
     } else {
       chrome.action.setBadgeText({ text: '', tabId });
-      chrome.action.setTitle({ title: '视频嗅探器', tabId });
+      chrome.action.setTitle({ title: t('sw_action_title'), tabId });
     }
   } catch {}
 }
@@ -1422,8 +1430,8 @@ const MessageHandlers = {
 
     // B站清晰度映射
     const qualityMap = {
-      127: '8K', 126: '杜比视界', 125: 'HDR', 120: '4K',
-      116: '1080P60', 112: '1080P高码率', 80: '1080P',
+      127: '8K', 126: t('sw_quality_dolby'), 125: 'HDR', 120: '4K',
+      116: '1080P60', 112: t('sw_quality_high_bitrate'), 80: '1080P',
       74: '720P60', 64: '720P', 32: '480P', 16: '360P',
     };
     const quality = qualityMap[bestVideo.id] || `${bestVideo.id}p`;
@@ -1432,7 +1440,7 @@ const MessageHandlers = {
     // score=99 确保排在所有其他条目之前
     addDetectedVideo(tabId, {
       url: bestVideo.url,
-      name: d.title || msg.pageTitle || 'B站视频',
+      name: d.title || msg.pageTitle || t('sw_bili_video'),
       type: 'bilibili-merged',
       format: 'mp4',
       duration: d.duration || null,
@@ -1533,7 +1541,7 @@ const MessageHandlers = {
 
   'start-download': async (msg, sender) => {
     if (!msg.video?.url || !isSafeUrl(msg.video.url)) {
-      throw new Error('视频 URL 不合法，拒绝下载');
+      throw new Error(t('sw_badurl'));
     }
     if (!msg.video.name) msg.video.name = guessNameFromUrl(msg.video.url);
     return startDownload(msg.video, 'normal', msg.referer, msg.tabId ?? sender.tab?.id);
@@ -1541,7 +1549,7 @@ const MessageHandlers = {
 
   'start-force-download': async (msg, sender) => {
     if (!msg.video?.url || !isSafeUrl(msg.video.url)) {
-      throw new Error('视频 URL 不合法，拒绝下载');
+      throw new Error(t('sw_badurl'));
     }
     if (!msg.video.name) msg.video.name = guessNameFromUrl(msg.video.url);
     return startDownload(msg.video, 'force', msg.referer, msg.tabId ?? sender.tab?.id);
@@ -1555,7 +1563,7 @@ const MessageHandlers = {
     const video = msg.video || {};
     const biliData = video.biliData || {};
     if (!biliData.videoUrl || !isSafeUrl(biliData.videoUrl)) {
-      throw new Error('B站视频流 URL 不合法');
+      throw new Error(t('sw_badurl_bili'));
     }
     if (!video.name) video.name = biliData.title || guessNameFromUrl(biliData.videoUrl);
 
@@ -1580,7 +1588,7 @@ const MessageHandlers = {
     });
     if (!stored) {
       delete STATE.activeDownloads[downloadId];
-      throw new Error('浏览器会话存储不可用，无法安全传递下载参数，请重试或检查浏览器存储设置');
+      throw new Error(t('sw_session_unavailable_params'));
     }
     const pageUrl = chrome.runtime.getURL('download-page/download.html') +
       `?id=${downloadId}&mode=bili-merge` +
@@ -1693,7 +1701,7 @@ const MessageHandlers = {
 
   'copy-url': async (msg) => {
     if (!msg.url || !isSafeUrl(msg.url)) {
-      throw new Error('URL 不合法，拒绝复制');
+      throw new Error(t('sw_badurl_copy'));
     }
     await navigator.clipboard.writeText(msg.url);
     return { copied: true };
@@ -1703,17 +1711,17 @@ const MessageHandlers = {
     const video = msg.video || {};
     // Blob/MSE 视频无法在独立播放页打开
     if (!video.url || video.url.startsWith('blob:') || video.url.startsWith('mse://')) {
-      throw new Error('此视频类型无法预览播放');
+      throw new Error(t('sw_preview_unsupported'));
     }
     if (!isSafeUrl(video.url)) {
-      throw new Error('视频 URL 不合法，拒绝播放');
+      throw new Error(t('sw_badurl_play'));
     }
     const name = video.name || guessNameFromUrl(video.url);
     // 安全审计修复：载荷 ID 追加 CSPRNG 随机段（Date.now() 可预测可枚举）
     const pid = `play_${Date.now().toString(36)}_${randToken(8)}`;
     const stored = await storeDownloadPayload(pid, { url: video.url });
     if (!stored) {
-      throw new Error('浏览器会话存储不可用，无法安全传递播放地址，请重试');
+      throw new Error(t('sw_session_unavailable_play'));
     }
     const url = chrome.runtime.getURL('download-page/download.html') +
       `?mode=player&pid=${pid}&name=${encodeURIComponent(name)}`;
@@ -1763,14 +1771,14 @@ const MessageHandlers = {
       return { applied: false };
     }
     if (!msg.url || !(await ensureSafeRemote(msg.url))) {
-      return { applied: false, error: dnsBlockReason(msg.url) || 'URL 不合法' };
+      return { applied: false, error: dnsBlockReason(msg.url) || t('sw_badurl_generic') };
     }
 
     // 为本次下载分配唯一规则 ID；池耗尽时返回 applied:false 让调用方
     // 降级（下载页走 SW 代理路径，不带 DNR 规则直连重试）
     const ruleId = allocRuleId();
     if (ruleId == null) {
-      return { applied: false, error: '规则 ID 池耗尽，请稍后重试' };
+      return { applied: false, error: t('sw_rule_pool_exhausted') };
     }
 
     // 请求头注入：与 applyProxyFetchHeaders 同口径 —— 优先用 webRequest 嗅探抓到的
@@ -1857,7 +1865,7 @@ const MessageHandlers = {
   // AES-128 密钥获取代理（绕过 CORS，纯本地中转，不存储密钥）
   'fetch-key': async (msg) => {
     if (!msg.url || !(await ensureSafeRemote(msg.url))) {
-      throw new Error(dnsBlockReason(msg.url) || '密钥 URL 不合法');
+      throw new Error(dnsBlockReason(msg.url) || t('sw_badurl_key'));
     }
     try {
       // 注：SW 的 fetch 禁止设置 Referer/Origin（forbidden headers，静默忽略），
@@ -1869,17 +1877,17 @@ const MessageHandlers = {
         redirect: 'follow',
         credentials: 'omit',
       }, PROXY_TIMEOUT_KEY, async (resp) => {
-        if (!resp.ok) throw new Error(`密钥 HTTP ${resp.status}`);
+        if (!resp.ok) throw new Error(t('sw_key_http', [resp.status]));
         return resp.arrayBuffer();
       });
-      if (buf.byteLength !== 16) throw new Error(`密钥长度异常: ${buf.byteLength}`);
+      if (buf.byteLength !== 16) throw new Error(t('sw_key_bad_length', [buf.byteLength]));
       // 返回 base64（不持久化，仅内存中转）
       const bytes = new Uint8Array(buf);
       let binary = '';
       for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
       return { keyData: btoa(binary) };
     } catch (e) {
-      return { error: e?.name === 'AbortError' ? '密钥请求超时' : e.message };
+      return { error: e?.name === 'AbortError' ? t('sw_key_timeout') : e.message };
     }
   },
 
@@ -1937,7 +1945,7 @@ const MessageHandlers = {
   // 代理探测：Range 支持 + 文件大小 + 首块内容校验
   'proxy-probe': async (msg, sender) => {
     if (!msg.url || !(await ensureSafeRemote(msg.url))) {
-      return { error: dnsBlockReason(msg.url) || 'URL 不合法' };
+      return { error: dnsBlockReason(msg.url) || t('sw_badurl_generic') };
     }
     const cleanup = await applyProxyFetchHeaders(msg.url, msg.referer, sender?.tab?.id);
     try {
@@ -1973,7 +1981,7 @@ const MessageHandlers = {
         return { error: `HTTP ${resp.status}` };
       });
     } catch (e) {
-      return { error: e?.name === 'AbortError' ? '探测超时（服务器无响应）' : e.message };
+      return { error: e?.name === 'AbortError' ? t('sw_probe_timeout') : e.message };
     } finally {
       cleanup();
     }
@@ -1985,7 +1993,7 @@ const MessageHandlers = {
   // SW 与下载页共享 OPFS 存储空间，通过文件名"手递手"零拷贝交付分段数据。
   'proxy-fetch-segment': async (msg, sender) => {
     if (!msg.url || !(await ensureSafeRemote(msg.url))) {
-      return { error: dnsBlockReason(msg.url) || 'URL 不合法' };
+      return { error: dnsBlockReason(msg.url) || t('sw_badurl_generic') };
     }
     // v4.3.4-3（与 proxy-fetch-text 同策略）：先「裸请求」——不注入
     // Referer/Cookie。部分机器/Chrome 版本上 DNR 注入头可能让网络服务拒绝
@@ -2019,7 +2027,7 @@ const MessageHandlers = {
       // 重试 → 速度在 MB/s 与几十 B/s 间剧烈抖动（正是"特定网站下载不稳"的
       // 根因）。改为与 proxy-fetch-full 同款的停滞看门狗：仅当连续
       // SEGMENT_STALL_TIMEOUT 无新数据才 abort，数据在流动就绝不打断。
-      const stallReason = new Error('分段下载停滞（连续 30 秒无新数据）——服务器中断响应');
+      const stallReason = new Error(t('sw_seg_stalled'));
       let watchdog = setTimeout(() => ctrl.abort(stallReason), SEGMENT_STALL_TIMEOUT);
       const feedWatchdog = () => {
         clearTimeout(watchdog);
@@ -2126,7 +2134,7 @@ const MessageHandlers = {
     } catch (e) {
       tryCleanup();
       opfsFile = null;
-      return { error: e?.name === 'AbortError' ? '分段下载停滞（服务器中断响应）' : e.message };
+      return { error: e?.name === 'AbortError' ? t('sw_seg_stalled_short') : e.message };
     } finally {
       cleanup();
     }
@@ -2137,7 +2145,7 @@ const MessageHandlers = {
   // 通过 DNR 注入 Referer/Origin/Cookie，解决大站 CDN 防盗链拒绝问题
   'proxy-fetch-full': async (msg, sender) => {
     if (!msg.url || !(await ensureSafeRemote(msg.url))) {
-      return { error: dnsBlockReason(msg.url) || 'URL 不合法' };
+      return { error: dnsBlockReason(msg.url) || t('sw_badurl_generic') };
     }
 
     // 统一防盗链头注入（Referer/Origin/Cookie，含嗅探抓到的 Cookie）
@@ -2147,7 +2155,7 @@ const MessageHandlers = {
     // 连续 30s 无新数据（CDN 半途挂起）→ abort，让下载页快速走备用 URL/直连
     const ctrl = new AbortController();
     // v4.2.11：带 reason 中断（防原生 abort 文案经消息总线漏到下载页）
-    const stallReason = new Error('下载停滞（连续 30 秒无新数据）——服务器中断响应');
+    const stallReason = new Error(t('sw_dl_stalled'));
     let watchdog = setTimeout(() => ctrl.abort(stallReason), 30000);
     const feedWatchdog = () => {
       clearTimeout(watchdog);
@@ -2239,14 +2247,14 @@ const MessageHandlers = {
       clearTimeout(watchdog);
       // 确保异常时也清理 DNR 规则
       cleanup();
-      return { error: e?.name === 'AbortError' ? '下载停滞（服务器中断响应）' : e.message };
+      return { error: e?.name === 'AbortError' ? t('sw_dl_stalled_short') : e.message };
     }
   },
 
   // 代理清单文本抓取（HLS/DASH m3u8/mpd）
   'proxy-fetch-text': async (msg, sender) => {
     if (!msg.url || !(await ensureSafeRemote(msg.url))) {
-      return { error: dnsBlockReason(msg.url) || 'URL 不合法' };
+      return { error: dnsBlockReason(msg.url) || t('sw_badurl_generic') };
     }
     // v4.3.4-3 关键改动：清单属公开资源，先「裸请求」——不注入 Referer/
     // Cookie。理由：
@@ -2279,7 +2287,7 @@ const MessageHandlers = {
         } catch (e) {
           const em = String(e?.message || '');
           if (e?.name === 'AbortError' || /超时|aborted|已被中断/i.test(em)) {
-            return { error: '清单请求超时（服务器无响应）' };
+            return { error: t('sw_manifest_timeout') };
           }
           // console 保留技术细节（含 cause 与所在 attempt），页面文案不含完整 URL
           let host = '';
@@ -2315,12 +2323,12 @@ const MessageHandlers = {
           signal: AbortSignal.timeout(3000),
         });
         diag = (probe?.type === 'opaque')
-          ? '（诊断：网络可达，请求被浏览器安全机制拦截——建议重启浏览器，若仍复现请把本行日志发往开发者）'
-          : '（诊断：网络层失败）';
-      } catch { diag = '（诊断：网络层失败）'; }
+          ? t('sw_diag_intercepted')
+          : t('sw_diag_network_fail');
+      } catch { diag = t('sw_diag_network_fail'); }
       let host = '';
       try { host = new URL(msg.url).hostname; } catch {}
-      return { error: `网络连接失败：无法连接清单服务器（${host || '目标网站'}）${diag}` };
+      return { error: t('sw_manifest_connect_failed', [host || t('sw_target_site'), diag]) };
     } finally {
       cleanup();
     }
@@ -2343,7 +2351,7 @@ const MessageHandlers = {
   // 顶层页误报「未找到 MSE 捕获数据」，即使 iframe 内数据完好）
   'mse-download': async (msg) => {
     const tabId = msg.tabId || STATE.lastActiveTab;
-    if (!tabId) return { error: '无活动标签页' };
+    if (!tabId) return { error: t('sw_no_active_tab') };
     const frameId = typeof msg.frameId === 'number' ? msg.frameId
       : (typeof msg.video?.frameId === 'number' ? msg.video.frameId : undefined);
     try {
@@ -2356,7 +2364,7 @@ const MessageHandlers = {
     } catch (e) {
       // frame 已销毁（页面刷新/iframe 被移除）→ 捕获数据随之丢失
       return { error: /frame|Receiving end/.test(String(e.message))
-        ? '捕获已随页面刷新失效，请重新播放后点击最新条目'
+        ? t('sw_capture_stale')
         : e.message };
     }
   },
@@ -2364,7 +2372,7 @@ const MessageHandlers = {
   // v4.1 新增：MSE 音视频轨合并下载（路由到源标签页）
   'mse-merge-download': async (msg) => {
     const tabId = msg.tabId || STATE.lastActiveTab;
-    if (!tabId) return { error: '无活动标签页' };
+    if (!tabId) return { error: t('sw_no_active_tab') };
     const frameId = typeof msg.frameId === 'number' ? msg.frameId
       : (typeof msg.video?.frameId === 'number' ? msg.video.frameId : undefined);
     try {
@@ -2376,7 +2384,7 @@ const MessageHandlers = {
       return { success: true };
     } catch (e) {
       return { error: /frame|Receiving end/.test(String(e.message))
-        ? '捕获已随页面刷新失效，请重新播放后点击最新条目'
+        ? t('sw_capture_stale')
         : e.message };
     }
   },
@@ -2618,7 +2626,7 @@ async function startDownload(video, mode, referer, sourceTabId) {
   const stored = await storeDownloadPayload(downloadId, { url: video.url, referer: referer || '' });
   if (!stored) {
     delete STATE.activeDownloads[downloadId];
-    throw new Error('浏览器会话存储不可用，无法安全传递下载地址，请重试或检查浏览器存储设置');
+    throw new Error(t('sw_session_unavailable_download'));
   }
   const pageUrl = chrome.runtime.getURL('download-page/download.html') +
     `?id=${downloadId}&mode=${mode}` +
@@ -2656,7 +2664,7 @@ async function startRecording(video, tabId, recordSpeed) {
   // 打开下载页显示录制进度
   const url = chrome.runtime.getURL('download-page/download.html') +
     `?mode=record&recordId=${recId}&tabId=${tabId}` +
-    `&name=${encodeURIComponent(video.name || guessNameFromUrl(video.url) || '录制视频')}`;
+    `&name=${encodeURIComponent(video.name || guessNameFromUrl(video.url) || t('sw_recording_video'))}`;
   await createTabAdjacent(url, tabId);
 
   return { recordId: recId, started: true };
@@ -2805,7 +2813,7 @@ chrome.runtime.onInstalled.addListener(safe((details) => {
   if (details.reason === 'install') {
     chrome.contextMenus.create({
       id: 'sniff-videos',
-      title: '重新嗅探本页视频',
+      title: t('sw_ctx_rescan'),
       contexts: ['page', 'video', 'audio'],
     });
   }

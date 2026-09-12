@@ -1,0 +1,1025 @@
+{
+  "ext_action_title": {
+    "message": "Video Sniffer"
+  },
+  "ext_command_open": {
+    "message": "Open the Video Sniffer popup"
+  },
+  "ext_desc": {
+    "message": "Download videos from any page: multi-threaded, HLS/DASH, MSE capture, A/V merging. No P2P, no telemetry, fully local."
+  },
+  "ext_name": {
+    "message": "Video Sniffer - Web Video Downloader"
+  },
+  "ext_short_name": {
+    "message": "VideoSniffer"
+  },
+  "popup_badge_audio": {
+    "message": "Audio"
+  },
+  "popup_badge_bili": {
+    "message": "Bilibili"
+  },
+  "popup_badge_bili_title": {
+    "message": "Direct MP4 URL from the Bilibili API — download without merging"
+  },
+  "popup_badge_direct": {
+    "message": "Direct"
+  },
+  "popup_badge_iframe": {
+    "message": "Embedded"
+  },
+  "popup_badge_mse": {
+    "message": "MSE capture"
+  },
+  "popup_badge_mse_title": {
+    "message": "Captured from the MSE data stream — raw segments, independent of playback speed"
+  },
+  "popup_badge_stream": {
+    "message": "Stream"
+  },
+  "popup_badge_video": {
+    "message": "Video"
+  },
+  "popup_blob_tip": {
+    "message": "Blob/MSE video cannot be downloaded directly — use recording mode"
+  },
+  "popup_btn_copy": {
+    "message": "Copy"
+  },
+  "popup_btn_download": {
+    "message": "Download"
+  },
+  "popup_btn_force": {
+    "message": "Force"
+  },
+  "popup_btn_merge_download": {
+    "message": "Merge & download"
+  },
+  "popup_btn_mse_download": {
+    "message": "MSE download"
+  },
+  "popup_btn_record": {
+    "message": "Record"
+  },
+  "popup_clear": {
+    "message": "Clear list"
+  },
+  "popup_copy_aria2c": {
+    "message": "Copy as aria2c"
+  },
+  "popup_copy_curl": {
+    "message": "Copy as curl"
+  },
+  "popup_copy_ffmpeg": {
+    "message": "Copy as ffmpeg"
+  },
+  "popup_copy_name": {
+    "message": "Copy file name"
+  },
+  "popup_copy_title": {
+    "message": "Copy video URL"
+  },
+  "popup_copy_url": {
+    "message": "Copy URL"
+  },
+  "popup_download_audio": {
+    "message": "Audio only"
+  },
+  "popup_download_audio_title": {
+    "message": "Note: this is an audio-only track (no picture)"
+  },
+  "popup_download_title": {
+    "message": "Normal download: multi-threaded segmented direct download"
+  },
+  "popup_dur_hm": {
+    "message": "$1h $2m"
+  },
+  "popup_dur_ms": {
+    "message": "$1m $2s"
+  },
+  "popup_dur_s": {
+    "message": "$1s"
+  },
+  "popup_empty": {
+    "message": "No video detected yet"
+  },
+  "popup_empty_hint": {
+    "message": "Play the video on the page, then click the refresh button above"
+  },
+  "popup_err_bg_down": {
+    "message": "background service unavailable"
+  },
+  "popup_err_clear": {
+    "message": "Clear failed: $1"
+  },
+  "popup_err_comm": {
+    "message": "Communication failed: $1"
+  },
+  "popup_err_invalid_url": {
+    "message": "Invalid URL — action refused"
+  },
+  "popup_err_no_bili": {
+    "message": "Missing Bilibili stream URL"
+  },
+  "popup_err_no_capture": {
+    "message": "Missing capture ID — cannot export the MSE data"
+  },
+  "popup_err_no_capture_merge": {
+    "message": "Missing capture ID — cannot merge and download"
+  },
+  "popup_filter_empty": {
+    "message": "No matching video"
+  },
+  "popup_force_title": {
+    "message": "Force download: send the source page credentials to bypass hotlink protection"
+  },
+  "popup_found_count": {
+    "message": "$1 video(s) found"
+  },
+  "popup_found_filtered": {
+    "message": "Showing $1 of $2 videos"
+  },
+  "popup_full_video": {
+    "message": "Full video (segmented)"
+  },
+  "popup_menu_more_title": {
+    "message": "More copy options"
+  },
+  "popup_merge_title_bili": {
+    "message": "Fetch the complete A/V streams from the Bilibili API and merge them into a single MP4 with sound and picture"
+  },
+  "popup_merge_title_mse": {
+    "message": "Merge & download: automatically pair the audio and video tracks into one complete MP4 (for sites that store them separately, e.g. Tencent or iQiyi)"
+  },
+  "popup_mse_download_title": {
+    "message": "Direct MSE download: capture the raw media segments, not limited by playback speed"
+  },
+  "popup_name_unnamed": {
+    "message": "Unnamed video"
+  },
+  "popup_play_disabled_title": {
+    "message": "Blob/MSE video cannot be previewed — download it directly"
+  },
+  "popup_play_title": {
+    "message": "Preview"
+  },
+  "popup_privacy_cleanup": {
+    "message": "Erase all traces"
+  },
+  "popup_privacy_note": {
+    "message": "Privacy-first · no P2P"
+  },
+  "popup_protected": {
+    "message": "Protected"
+  },
+  "popup_protected_title": {
+    "message": "This site uses a proprietary encrypted stream (e.g. Tencent cmfv); a direct download will not play — use recording or MSE capture instead"
+  },
+  "popup_record_1x": {
+    "message": "1x (with audio)"
+  },
+  "popup_record_8x": {
+    "message": "8x (recommended)"
+  },
+  "popup_record_hint": {
+    "message": "Actual recording time = video length ÷ N"
+  },
+  "popup_record_speed": {
+    "message": "Recording speed"
+  },
+  "popup_record_title": {
+    "message": "Recording mode: capture the frames while the video plays"
+  },
+  "popup_rescan_title": {
+    "message": "Rescan this page"
+  },
+  "popup_rescanning": {
+    "message": "Rescanning…"
+  },
+  "popup_scanning": {
+    "message": "Sniffing for videos…"
+  },
+  "popup_search_placeholder": {
+    "message": "Search videos…"
+  },
+  "popup_size_unknown": {
+    "message": "Unknown size"
+  },
+  "popup_sort_name": {
+    "message": "Name"
+  },
+  "popup_sort_score": {
+    "message": "Best match"
+  },
+  "popup_sort_size": {
+    "message": "Size"
+  },
+  "popup_sort_title": {
+    "message": "Sort by"
+  },
+  "popup_sort_type": {
+    "message": "Type"
+  },
+  "popup_title": {
+    "message": "Video Sniffer"
+  },
+  "popup_toast_bili_downloading": {
+    "message": "Downloading the Bilibili video…"
+  },
+  "popup_toast_cleared": {
+    "message": "All download traces erased"
+  },
+  "popup_toast_copied": {
+    "message": "Copied to clipboard"
+  },
+  "popup_toast_merging": {
+    "message": "Merging the audio and video tracks… keep the video page open"
+  },
+  "popup_toast_mse_exporting": {
+    "message": "Exporting the MSE capture…"
+  },
+  "popup_toast_no_preview": {
+    "message": "This video cannot be previewed — download or record it instead"
+  },
+  "popup_toast_record_started": {
+    "message": "Recording started — play the video on the page"
+  },
+  "popup_toast_record_started_speed": {
+    "message": "Recording started ($1x) — play the video on the page"
+  },
+  "popup_track_audio": {
+    "message": "Audio track"
+  },
+  "popup_track_audio_title": {
+    "message": "Audio only, no picture. A 12-minute clip is about 11-29 MB while the video track is hundreds of MB — do not download this by mistake"
+  },
+  "popup_track_video": {
+    "message": "Video track · silent"
+  },
+  "popup_track_video_title": {
+    "message": "DASH video-only track: silence is expected (the site stores audio and video separately). Play it with VLC or merge it with the audio track"
+  },
+  "dl_bili_video": {
+    "message": "Bilibili video"
+  },
+  "dl_cache_cleared": {
+    "message": "Cache cleared"
+  },
+  "dl_clear_cache": {
+    "message": "Clear cache now"
+  },
+  "dl_completed": {
+    "message": "Done"
+  },
+  "dl_connections": {
+    "message": "Connections"
+  },
+  "dl_detect_on_download": {
+    "message": "Detected during download"
+  },
+  "dl_done_audio_track": {
+    "message": "Download complete! This is an audio-only track (sound but no picture, which is normal). If double-clicking does nothing, play it with VLC / PotPlayer, or download the video-track entry instead"
+  },
+  "dl_done_file_size": {
+    "message": "Download complete! File size: $1"
+  },
+  "dl_done_video_track": {
+    "message": "Download complete! Note: this is a DASH video-only track (no sound, which is normal). If your player cannot open it, use VLC/PotPlayer, or download the audio track as well and merge"
+  },
+  "dl_download_failed_msg": {
+    "message": "Download failed: $1"
+  },
+  "dl_downloaded": {
+    "message": "Downloaded"
+  },
+  "dl_downloading": {
+    "message": "Downloading"
+  },
+  "dl_downloading_audio_stream": {
+    "message": "Downloading audio stream…"
+  },
+  "dl_downloading_video": {
+    "message": "Downloading video…"
+  },
+  "dl_downloading_video_stream": {
+    "message": "Downloading video stream…"
+  },
+  "dl_err_aborted": {
+    "message": "The request timed out or was interrupted; try again. If it keeps failing, choose another entry or quality"
+  },
+  "dl_err_bili_direct_failed": {
+    "message": "Video download failed and every strategy failed. Likely cause: the Bilibili CDN refused access — try playing the video first, then download again"
+  },
+  "dl_err_bili_stream_failed": {
+    "message": "Video stream download failed and every strategy failed. Likely cause: the Bilibili CDN refused access — try playing the video first, then download again"
+  },
+  "dl_err_merge_encrypted": {
+    "message": "This video is protected by encryption (pssh/tenc), so the merged file cannot be played. Use \"Record\" or the platform's official offline download instead"
+  },
+  "dl_err_merge_no_output": {
+    "message": "Merge failed: no file was produced"
+  },
+  "dl_err_merger_missing": {
+    "message": "The merge module is not loaded (mp4-merger.js is missing); reload the extension and try again"
+  },
+  "dl_err_no_stream_url": {
+    "message": "No stream URL was obtained; refresh the page and try again"
+  },
+  "dl_error_prefix": {
+    "message": "Error: $1"
+  },
+  "dl_eta": {
+    "message": "Time left"
+  },
+  "dl_failed": {
+    "message": "Failed"
+  },
+  "dl_format_merged": {
+    "message": "MP4 (merged)"
+  },
+  "dl_init_failed": {
+    "message": "Initialization failed: $1"
+  },
+  "dl_initializing": {
+    "message": "Initializing…"
+  },
+  "dl_loading": {
+    "message": "Loading…"
+  },
+  "dl_manual_save_hint": {
+    "message": "Download complete. Click \"Save cached parts\" to save the file"
+  },
+  "dl_merge_done_file_size": {
+    "message": "Merge complete! File size: $1"
+  },
+  "dl_merging_av": {
+    "message": "Merging audio and video…"
+  },
+  "dl_no_data_captured": {
+    "message": "no data was captured"
+  },
+  "dl_no_data_to_save": {
+    "message": "there is no data to save"
+  },
+  "dl_note_audio_track": {
+    "message": "Note: this is an audio-only track (sound, no picture). For video, go back to the list and pick the larger entry with the \"video track\" badge"
+  },
+  "dl_note_video_track": {
+    "message": "Starting the DASH video track (no sound). Missing audio is by site design, not corruption; download the audio track as well and merge, or use recording"
+  },
+  "dl_notification_done": {
+    "message": "Download complete"
+  },
+  "dl_notification_record_done": {
+    "message": "Recording complete"
+  },
+  "dl_notification_record_saved": {
+    "message": "\"$1\" was saved."
+  },
+  "dl_notification_saved": {
+    "message": "\"$1\" was downloaded successfully."
+  },
+  "dl_page_title": {
+    "message": "Video Sniffer - Download Manager"
+  },
+  "dl_pause": {
+    "message": "Pause"
+  },
+  "dl_player_load_failed": {
+    "message": "Failed to load the video source (MSE/memory stream, expired URL, or hotlink protection). Go back to the original video page, refresh it, then choose \"Download\" or \"Record\"."
+  },
+  "dl_player_logo": {
+    "message": "Video Sniffer - Preview"
+  },
+  "dl_player_memory_stream": {
+    "message": "This is a memory-stream (MSE/blob) URL that the download page cannot play directly. Go back to the original video page, refresh it, then choose \"Download\" or \"Record\"."
+  },
+  "dl_player_not_ready_generic": {
+    "message": "The video source was not ready within 8 seconds (it may be blocked by hotlink protection or unsupported for direct playback). Go back to the list and pick another entry, or choose \"Download\"."
+  },
+  "dl_player_not_ready_memory": {
+    "message": "The video source was not ready within 8 seconds: this is a memory stream (MSE) or an expired blob URL that cannot be played on the download page. Go back to the original video page, refresh it, then choose \"Download\" or \"Record\"."
+  },
+  "dl_player_tab_title": {
+    "message": "Playing: $1"
+  },
+  "dl_preparing": {
+    "message": "Preparing…"
+  },
+  "dl_privacy_badge": {
+    "message": "Private download · No P2P"
+  },
+  "dl_progress_fraction_segments": {
+    "message": "$1 / $2 segments"
+  },
+  "dl_record_blackframe": {
+    "message": "Warning: the picture stays completely black — this video is protected by encryption (the browser forces a black video output) and cannot be bypassed. The recorded file will contain audio only, so stopping the recording is recommended"
+  },
+  "dl_record_capturing": {
+    "message": "Capturing frames…"
+  },
+  "dl_record_cors_warning": {
+    "message": "Warning: the video is blocked by cross-origin (CORS) restrictions, so frames cannot be captured. This site does not allow cross-origin access; recording would only produce a black screen. Use \"MSE capture\" to download instead"
+  },
+  "dl_record_default_name": {
+    "message": "recording.webm"
+  },
+  "dl_record_done": {
+    "message": "Recording complete! The file \"$1\" was saved ($2)"
+  },
+  "dl_record_failed": {
+    "message": "Recording failed: $1. Make sure the video is playing, or use \"MSE capture\" to download"
+  },
+  "dl_record_hint": {
+    "message": "Records the decoded picture; use it for streams that cannot be downloaded directly. Keep the video playing on the source page."
+  },
+  "dl_record_recording": {
+    "message": "Recording"
+  },
+  "dl_record_saving": {
+    "message": "Saving the recording…"
+  },
+  "dl_record_status_hint": {
+    "message": "Recording… keep the video playing on the source page. Note: recording is real-time capture, so the rate is about the video bitrate and is limited by playback speed; encrypted content always records as a black screen and cannot be exported legitimately — use the platform's official offline download instead"
+  },
+  "dl_record_stop": {
+    "message": "Stop recording and save"
+  },
+  "dl_record_tag": {
+    "message": "(Recording)"
+  },
+  "dl_record_warn_cors": {
+    "message": "Warning: the recording rate is low (<200KB/s). A cross-origin (CORS) restriction was detected, so frames cannot be captured and the recording may contain audio only. Use MSE capture to download instead"
+  },
+  "dl_record_warn_generic": {
+    "message": "Warning: the recording rate is low (<200KB/s). The video bitrate may simply be low, or the picture may be mostly static. If the recorded file will not play, use MSE capture instead"
+  },
+  "dl_record_warn_low_rate": {
+    "message": "Warning: the recording rate is extremely low (<50KB/s); the video is protected by encryption (the browser forces a black video output) and MSE interception yields only ciphertext, so nothing can be exported. Stopping the recording and using the platform's official offline download is recommended"
+  },
+  "dl_record_warn_paused": {
+    "message": "Warning: the recording rate is low (<200KB/s). The video does not seem to be playing; make sure it is playing on the source page"
+  },
+  "dl_resume": {
+    "message": "Resume"
+  },
+  "dl_retry": {
+    "message": "Retry"
+  },
+  "dl_retry_in_progress": {
+    "message": "Retrying…"
+  },
+  "dl_retrying": {
+    "message": "Retrying…"
+  },
+  "dl_save_cached": {
+    "message": "Save cached parts"
+  },
+  "dl_save_failed": {
+    "message": "Save failed: $1"
+  },
+  "dl_saved": {
+    "message": "Saved"
+  },
+  "dl_saved_file": {
+    "message": "Saved: $1"
+  },
+  "dl_saving": {
+    "message": "Saving…"
+  },
+  "dl_setting_boost_enable": {
+    "message": "Enable adaptive connection scaling (accelerate automatically when there is enough bandwidth)"
+  },
+  "dl_setting_boost_hint": {
+    "message": "Monitors bandwidth usage and opens extra download connections to boost speed"
+  },
+  "dl_setting_boost_label": {
+    "message": "Speed boost"
+  },
+  "dl_setting_cache_label": {
+    "message": "Cache management"
+  },
+  "dl_setting_cache_onexit": {
+    "message": "Clear the cache automatically when leaving the page"
+  },
+  "dl_setting_filename_auto": {
+    "message": "Automatic (named after the video title)"
+  },
+  "dl_setting_filename_custom": {
+    "message": "Custom name"
+  },
+  "dl_setting_filename_label": {
+    "message": "File name"
+  },
+  "dl_setting_filename_placeholder": {
+    "message": "Enter a file name"
+  },
+  "dl_setting_location_ask": {
+    "message": "Ask every time"
+  },
+  "dl_setting_location_browser": {
+    "message": "Follow browser settings (default)"
+  },
+  "dl_setting_location_hint": {
+    "message": "The actual download folder is controlled by your Chrome/Edge browser settings"
+  },
+  "dl_setting_location_label": {
+    "message": "Save location"
+  },
+  "dl_setting_privacy_enable": {
+    "message": "Privacy mode (history keeps only the domain, not the full URL)"
+  },
+  "dl_setting_privacy_hint": {
+    "message": "When enabled, download history keeps only the source domain and never exposes the full video URL"
+  },
+  "dl_setting_privacy_label": {
+    "message": "Privacy protection"
+  },
+  "dl_setting_savemode_auto": {
+    "message": "Save automatically (save as soon as the download finishes)"
+  },
+  "dl_setting_savemode_label": {
+    "message": "Save mode"
+  },
+  "dl_setting_savemode_manual": {
+    "message": "Manual save (click the button when the download finishes)"
+  },
+  "dl_setting_threads_hint": {
+    "message": "More connections download faster (aria2 dynamic segmentation; extra connections open automatically when bandwidth allows)"
+  },
+  "dl_setting_threads_label": {
+    "message": "Download threads (connections)"
+  },
+  "dl_settings": {
+    "message": "Settings"
+  },
+  "dl_settings_close": {
+    "message": "Close"
+  },
+  "dl_settings_save": {
+    "message": "Save settings"
+  },
+  "dl_settings_saved": {
+    "message": "Settings saved"
+  },
+  "dl_settings_title": {
+    "message": "Download settings"
+  },
+  "dl_speed": {
+    "message": "Speed"
+  },
+  "dl_stat_total_segments": {
+    "message": "$1 segments"
+  },
+  "dl_status_converting": {
+    "message": "Converting the container to MP4 (improves iPhone/mobile compatibility; unconverted TS often will not play on phones)…"
+  },
+  "dl_status_done": {
+    "message": "Download complete!"
+  },
+  "dl_status_downloading": {
+    "message": "Downloading at full speed…"
+  },
+  "dl_status_error": {
+    "message": "Download failed"
+  },
+  "dl_status_idle": {
+    "message": "Waiting…"
+  },
+  "dl_status_manifest": {
+    "message": "Fetching the stream manifest (m3u8/mpd)…"
+  },
+  "dl_status_merging": {
+    "message": "Generating the final file…"
+  },
+  "dl_status_paused": {
+    "message": "Paused. Click \"Resume\" to continue the download"
+  },
+  "dl_status_preparing": {
+    "message": "Preparing the download (registering the task, requesting storage)…"
+  },
+  "dl_status_probing": {
+    "message": "Probing the video source (up to about 15 seconds if the server responds slowly)…"
+  },
+  "dl_tab_title_converting": {
+    "message": "⏳ Converting to MP4"
+  },
+  "dl_tab_title_done": {
+    "message": "✓ Done"
+  },
+  "dl_tab_title_failed": {
+    "message": "✗ Download failed"
+  },
+  "dl_tab_title_merging": {
+    "message": "⏳ Merging"
+  },
+  "dl_tab_title_paused": {
+    "message": "⏸ Paused"
+  },
+  "dl_total_size": {
+    "message": "Total size"
+  },
+  "dl_unknown_error": {
+    "message": "Unknown error"
+  },
+  "dl_unknown_merge_error": {
+    "message": "Unknown merge error"
+  },
+  "dl_unnamed_video": {
+    "message": "Untitled video"
+  },
+  "dl_video_download": {
+    "message": "Video download"
+  },
+  "dl_warn_small_file": {
+    "message": "Warning: the file is only $1; it may be a preview clip or a video-only track (no audio). If it will not play after downloading, use \"MSE capture\" or \"Record\" instead"
+  },
+  "sw_action_title": {
+    "message": "Video Sniffer"
+  },
+  "sw_action_title_count": {
+    "message": "Video Sniffer - $1 video(s) detected"
+  },
+  "sw_badurl": {
+    "message": "Invalid video URL; download refused"
+  },
+  "sw_badurl_bili": {
+    "message": "Invalid Bilibili video stream URL"
+  },
+  "sw_badurl_copy": {
+    "message": "Invalid URL; copy refused"
+  },
+  "sw_badurl_generic": {
+    "message": "Invalid URL"
+  },
+  "sw_badurl_key": {
+    "message": "Invalid key URL"
+  },
+  "sw_badurl_play": {
+    "message": "Invalid video URL; playback refused"
+  },
+  "sw_bili_video": {
+    "message": "Bilibili video"
+  },
+  "sw_capture_stale": {
+    "message": "The capture expired when the page reloaded; replay the video and click the newest entry"
+  },
+  "sw_ctx_rescan": {
+    "message": "Rescan videos on this page"
+  },
+  "sw_diag_intercepted": {
+    "message": "(diagnostic: network reachable, request blocked by a browser security mechanism — try restarting the browser; if it still reproduces, send this log line to the developer)"
+  },
+  "sw_diag_network_fail": {
+    "message": "(diagnostic: network layer failure)"
+  },
+  "sw_dl_stalled": {
+    "message": "Download stalled (no new data for 30s) — server stopped responding"
+  },
+  "sw_dl_stalled_short": {
+    "message": "Download stalled (server stopped responding)"
+  },
+  "sw_dns_private": {
+    "message": "This domain resolves to a private/reserved address; blocked by SSRF protection"
+  },
+  "sw_dns_timeout": {
+    "message": "DNS safety check timed out: local DNS did not respond for this domain (check your system DNS/proxy software and retry)"
+  },
+  "sw_key_bad_length": {
+    "message": "Unexpected key length: $1"
+  },
+  "sw_key_http": {
+    "message": "Key HTTP $1"
+  },
+  "sw_key_timeout": {
+    "message": "Key request timed out"
+  },
+  "sw_manifest_connect_failed": {
+    "message": "Network error: cannot reach the manifest server ($1)$2"
+  },
+  "sw_manifest_timeout": {
+    "message": "Manifest request timed out (server not responding)"
+  },
+  "sw_no_active_tab": {
+    "message": "No active tab"
+  },
+  "sw_preview_unsupported": {
+    "message": "This video type cannot be previewed"
+  },
+  "sw_probe_timeout": {
+    "message": "Probe timed out (server not responding)"
+  },
+  "sw_proxy_timeout": {
+    "message": "Proxy request timed out ($1s) — server not responding"
+  },
+  "sw_quality_dolby": {
+    "message": "Dolby Vision"
+  },
+  "sw_quality_generic": {
+    "message": "Quality $1"
+  },
+  "sw_quality_high_bitrate": {
+    "message": "1080P high bitrate"
+  },
+  "sw_recording_video": {
+    "message": "Recorded video"
+  },
+  "sw_rule_pool_exhausted": {
+    "message": "Rule ID pool exhausted; retry later"
+  },
+  "sw_seg_stalled": {
+    "message": "Segment download stalled (no new data for 30s) — server stopped responding"
+  },
+  "sw_seg_stalled_short": {
+    "message": "Segment download stalled (server stopped responding)"
+  },
+  "sw_session_unavailable_download": {
+    "message": "Browser session storage is unavailable; the download URL cannot be passed securely. Please retry or check your browser storage settings"
+  },
+  "sw_session_unavailable_params": {
+    "message": "Browser session storage is unavailable; the download parameters cannot be passed securely. Please retry or check your browser storage settings"
+  },
+  "sw_session_unavailable_play": {
+    "message": "Browser session storage is unavailable; the playback URL cannot be passed securely. Please retry"
+  },
+  "sw_target_site": {
+    "message": "target site"
+  },
+  "sw_track_audio": {
+    "message": " (audio track)"
+  },
+  "sw_track_video_silent": {
+    "message": " (video track · silent)"
+  },
+  "sw_untitled": {
+    "message": "Untitled video"
+  },
+  "cs_merge_encrypted": {
+    "message": "This stream is encrypted (paid content); the MSE data itself is ciphertext, so the export will not play. Free content downloads normally"
+  },
+  "cs_merge_failed": {
+    "message": "Merge failed — please try again"
+  },
+  "cs_merge_failed_detail": {
+    "message": "Audio/video merge failed. Fallback: download the video and audio tracks separately and merge them manually"
+  },
+  "cs_merge_no_audio": {
+    "message": "No matching audio track found, so merging is not possible. Download the video track (silent) or use recording instead"
+  },
+  "cs_merge_not_ready": {
+    "message": "The merger is not ready — refresh the page and try again"
+  },
+  "cs_merge_timeout": {
+    "message": "The audio/video merge request timed out — make sure the video has started playing, then try again"
+  },
+  "cs_merge_transfer_failed": {
+    "message": "Merged data transfer failed"
+  },
+  "cs_missing_capture_id": {
+    "message": "Missing captureId"
+  },
+  "cs_mse_ad_cleared": {
+    "message": "Content switched (ad → main video). Ad data cleared — click the MSE download again"
+  },
+  "cs_mse_captured_video": {
+    "message": "MSE captured video"
+  },
+  "cs_mse_empty": {
+    "message": "The MSE capture is empty — play the video before downloading"
+  },
+  "cs_mse_not_found": {
+    "message": "No MSE capture data found — make sure the video has started playing"
+  },
+  "cs_mse_rate_limited": {
+    "message": "Too many MSE data requests — wait a few seconds and try again"
+  },
+  "cs_mse_timeout": {
+    "message": "The MSE data request timed out — make sure the video has started playing, then try again"
+  },
+  "cs_mse_transfer_failed": {
+    "message": "Data transfer failed"
+  },
+  "cs_mse_truncated": {
+    "message": "This capture hit the size limit; the exported file leaves out the excess (the video may be incomplete)"
+  },
+  "cs_no_video_element": {
+    "message": "There is no video element on this page"
+  },
+  "cs_no_video_element_found": {
+    "message": "No video element was found on this page"
+  },
+  "cs_record_encrypted": {
+    "message": "This video is encrypted; recording would be black and there is no legitimate export path — use the platform's official offline download"
+  },
+  "cs_record_encrypted_detail": {
+    "message": "This video is encrypted: recording produces a black screen and MSE interception only yields encrypted data, so neither can be exported. Use the platform's official offline download feature"
+  },
+  "cs_record_file_name": {
+    "message": "Recording"
+  },
+  "cs_record_limit": {
+    "message": "Recording reached the $1GB limit — stopped automatically and saved what was recorded so far"
+  },
+  "cs_record_no_data": {
+    "message": "Recording captured no data. The video may not be playing, or browser output protection is blocking it"
+  },
+  "cs_request_data_sent": {
+    "message": "Data transfer requested"
+  },
+  "cs_request_merge_sent": {
+    "message": "Audio/video merge export requested"
+  },
+  "cs_save_failed": {
+    "message": "Save failed — please try again"
+  },
+  "cs_saved_file": {
+    "message": "Saved: $1"
+  },
+  "cs_saving": {
+    "message": "Saving $1 of data…"
+  },
+  "cs_sniffer_not_ready": {
+    "message": "The sniffer is not ready"
+  },
+  "cs_sniffer_uninitialized": {
+    "message": "The sniffer is not initialized"
+  },
+  "cs_untitled_video": {
+    "message": "Unnamed video"
+  },
+  "de_bg_failed": {
+    "message": "Background processing failed"
+  },
+  "de_block_font": {
+    "message": "Content is a font file (woff/woff2), not a video — blocked"
+  },
+  "de_block_html": {
+    "message": "Content is an HTML page (the link may be dead or require login) — blocked"
+  },
+  "de_block_image": {
+    "message": "Content is an image, not a video — blocked"
+  },
+  "de_block_json": {
+    "message": "Content is JSON data (usually hotlink protection or an error response) — blocked"
+  },
+  "de_block_pdf": {
+    "message": "Content is a PDF document, not a video — blocked"
+  },
+  "de_block_zip": {
+    "message": "Content is a ZIP archive, not a video — blocked"
+  },
+  "de_conn_timeout": {
+    "message": "Connection timed out; no data arrived"
+  },
+  "de_opfs_unavailable": {
+    "message": "OPFS is unavailable; cannot read the proxied segment"
+  },
+  "de_probe_timeout": {
+    "message": "Probe timed out"
+  },
+  "de_proxy_probe_timeout": {
+    "message": "Proxied probe request timed out ($1s) — the service worker did not respond"
+  },
+  "de_proxy_seg_timeout": {
+    "message": "Proxied segment request timed out ($1s) — the service worker did not respond"
+  },
+  "de_range_misalign": {
+    "message": "CDN returned a mismatched range (requested $1, got $2) — write refused"
+  },
+  "de_req_timeout": {
+    "message": "Request timed out ($1s) — the server did not respond"
+  },
+  "de_seg_no_data": {
+    "message": "Segment had no data / short read ($1/$2)"
+  },
+  "de_seg_proxy_timeout": {
+    "message": "Proxied segment request timed out (65s) — the service worker is busy or unresponsive; retrying automatically"
+  },
+  "de_seg_short_read": {
+    "message": "Short segment read ($1/$2 @ $3) — write refused"
+  },
+  "de_seg_stall": {
+    "message": "Segment download stalled (no new data for $1s; the server dropped the response)"
+  },
+  "de_seg_timeout": {
+    "message": "Segment download timed out ($1s)"
+  },
+  "de_segments_failed": {
+    "message": "$1 segments failed repeatedly (CDN throttling or refusal). Aborted without producing a corrupt file — please retry later, or reduce the number of concurrent downloads"
+  },
+  "de_srv_no_range": {
+    "message": "The server does not support Range requests"
+  },
+  "de_sw_timeout": {
+    "message": "Service worker response timed out ($1s) — it may be asleep or busy, type=$2"
+  },
+  "de_url_invalid": {
+    "message": "Invalid URL: only the http/https protocol is supported, local addresses are blocked"
+  },
+  "de_write_failed": {
+    "message": "File write failed: $1"
+  },
+  "sd_aes_key_failed": {
+    "message": "Failed to fetch the AES-128 key; please try recording mode"
+  },
+  "sd_bg_failed": {
+    "message": "Background processing failed"
+  },
+  "sd_dash_no_video": {
+    "message": "No video track in the DASH manifest"
+  },
+  "sd_dash_parse_failed": {
+    "message": "Failed to parse the DASH manifest"
+  },
+  "sd_key_http": {
+    "message": "Key fetch HTTP $1"
+  },
+  "sd_key_len_abnormal": {
+    "message": "Abnormal key length: $1"
+  },
+  "sd_key_timeout": {
+    "message": "Key fetch timed out (15s)"
+  },
+  "sd_manifest_cors": {
+    "message": "Failed to fetch the manifest: the server refused cross-origin access or did not respond. Please retry, or go back to the list and download another item/quality"
+  },
+  "sd_manifest_failed": {
+    "message": "Failed to fetch the manifest: $1"
+  },
+  "sd_manifest_http": {
+    "message": "Failed to fetch the manifest: HTTP $1"
+  },
+  "sd_manifest_timeout": {
+    "message": "Manifest fetch timed out (15s) — the server is too slow or the network is restricted; please retry or pick another item/quality"
+  },
+  "sd_no_segments": {
+    "message": "No downloadable segments were found in the manifest"
+  },
+  "sd_opfs_unavailable": {
+    "message": "OPFS is unavailable in this environment; cannot read proxied segments"
+  },
+  "sd_playlist_deep": {
+    "message": "Playlist nesting is too deep"
+  },
+  "sd_proxy_no_opfs": {
+    "message": "The proxy did not return an OPFS file handle"
+  },
+  "sd_sample_aes_unsupported": {
+    "message": "This video uses an unsupported encryption method (SAMPLE-AES); please use recording mode"
+  },
+  "sd_seg_cors": {
+    "message": "Segment fetch failed: the server refused cross-origin access (Failed to fetch)"
+  },
+  "sd_seg_key_failed": {
+    "message": "Failed to fetch the segment key"
+  },
+  "sd_seg_len_check": {
+    "message": "Segment length check failed (expected $1, got $2)"
+  },
+  "sd_seg_timeout": {
+    "message": "Segment fetch timed out (30s) — the server is too slow or the connection was interrupted"
+  },
+  "sd_segments_failed": {
+    "message": "$1 segments failed repeatedly (of $2 total); aborted without producing a corrupt file. Try reducing the number of concurrent downloads"
+  },
+  "sd_sw_timeout": {
+    "message": "Service worker response timed out ($1s) — it may be asleep or busy, type=$2"
+  },
+  "sd_url_invalid": {
+    "message": "Invalid URL: only the http/https protocol is supported, local addresses are blocked"
+  },
+  "sd_write_failed": {
+    "message": "File write failed: $1"
+  },
+  "nh_bg_failed": {
+    "message": "Background processing failed"
+  },
+  "nh_sw_timeout": {
+    "message": "Service worker response timed out ($1s) — it may be asleep or busy, type=$2"
+  },
+  "off_bad_url": {
+    "message": "Invalid URL (only the blob: protocol is allowed)"
+  },
+  "off_blob_failed": {
+    "message": "Offscreen: blob read failed status=$1"
+  },
+  "off_blob_read_failed": {
+    "message": "blob read failed"
+  },
+  "off_blob_read_timeout": {
+    "message": "blob read timed out"
+  },
+  "off_blob_timeout": {
+    "message": "Offscreen: blob read timed out (60s)"
+  },
+  "off_empty_list": {
+    "message": "Empty blob list"
+  },
+  "off_size_exceeded": {
+    "message": "Merged size exceeds the limit (>$1B)"
+  },
+  "off_unknown": {
+    "message": "Unknown error"
+  }
+}
