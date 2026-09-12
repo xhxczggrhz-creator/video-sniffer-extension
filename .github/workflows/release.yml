@@ -1,0 +1,58 @@
+name: Release
+
+# 打 tag 即自动出 Release（附可下载的扩展 zip + SHA256）。
+# 这样发版流程收敛成：改版本号 → 写 CHANGELOG → 打 tag 推送，其余全自动。
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 门禁（语法 / 单元 / 安全 / 国际化）
+        run: |
+          node scripts/check-js.js
+          node tests/test-validate.js && node tests/test-merger.js
+          node tests/test-ssrf-p03.js
+          node scripts/i18n-check.js
+
+      - name: 版本一致性（manifest 必须等于 tag）
+        run: |
+          VER=$(node -e "console.log(require('./manifest.json').version)")
+          TAG="${GITHUB_REF_NAME#v}"
+          if [ "$VER" != "$TAG" ]; then
+            echo "::error::manifest.json 版本 ($VER) 与 tag ($TAG) 不一致"
+            exit 1
+          fi
+          echo "版本一致：$VER"
+
+      - name: 打包（zip + SHA256，与 ci.yml 同口径）
+        run: |
+          VER=$(node -e "console.log(require('./manifest.json').version)")
+          mkdir -p dist
+          zip -r "dist/video-sniffer-${VER}.zip" \
+            manifest.json _locales background content icons lib offscreen popup LICENSE README.md \
+            -x '*/drm-service/*' '*/node_modules/*' '*/\.*'
+          cd dist && sha256sum "video-sniffer-${VER}.zip" > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: 创建 Release 并附上产物
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VER=$(node -e "console.log(require('./manifest.json').version)")
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/video-sniffer-${VER}.zip" dist/SHA256SUMS.txt \
+            --title "v${VER}" \
+            --generate-notes
+          echo "RELEASE_URL $(gh release view "$GITHUB_REF_NAME" --json url -q .url)"
