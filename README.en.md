@@ -4,7 +4,7 @@
 > aria2-style dynamic segmentation, HLS/DASH streaming, MSE capture, audio/video track merging
 > and screen recording.
 
-**Version 4.4.0 · Plain HTTP only. No P2P / BitTorrent / magnet links. No telemetry.**
+**Version 4.5.1 · Plain HTTP only. No P2P / BitTorrent / magnet links. No telemetry.**
 
 [中文说明](README.md) · [Changelog](CHANGELOG.md) · [Security Policy](SECURITY.md) · [Privacy](PRIVACY.md) · [i18n Guide](docs/i18n.md)
 
