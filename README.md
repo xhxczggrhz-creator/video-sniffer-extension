@@ -14,6 +14,8 @@
 - [SECURITY.md](SECURITY.md)：安全政策与漏洞报告
 - [PRIVACY.md](PRIVACY.md)：隐私承诺
 - [docs/i18n.md](docs/i18n.md)：国际化说明 · **如何新增一门语言（只需加一个 JSON，无需改代码）**
+- [lib/THIRD-PARTY-NOTICES.md](lib/THIRD-PARTY-NOTICES.md)：第三方组件版权与许可证正文 · **借鉴同类项目的边界**
+- [lib/VENDOR.md](lib/VENDOR.md)：第三方依赖清单与完整性校验
 
 ---
 
