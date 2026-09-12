@@ -45,6 +45,8 @@
 2. 点击「加载已解压的扩展程序」，选择本项目根目录
 3. 浏览器版本需 ≥ Chrome 111（Manifest V3）
 
+> 也可以直接下载 [Releases](https://github.com/xhxczggrhz-creator/video-sniffer-extension/releases) 里的 `video-sniffer-<版本>.zip`，解压后按同样方式加载（附带 SHA256 校验和）。
+
 ## 使用
 
 1. 打开视频页面，点击扩展图标

@@ -43,6 +43,10 @@
 2. Click **Load unpacked** and select this repository's root directory.
 3. Requires Chrome 111 or newer (Manifest V3).
 
+> You can also grab `video-sniffer-<version>.zip` from
+> [Releases](https://github.com/xhxczggrhz-creator/video-sniffer-extension/releases),
+> unzip it, and load it the same way (a SHA256 checksum is published alongside).
+
 ## Usage
 
 1. Open a page with a video and click the extension icon (`Alt+Shift+V` also opens it).
