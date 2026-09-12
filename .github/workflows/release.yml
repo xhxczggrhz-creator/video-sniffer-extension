@@ -46,13 +46,22 @@ jobs:
           cd dist && sha256sum "video-sniffer-${VER}.zip" > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
+      # --generate-notes 是按 PR 聚合的；本仓库全是直接 push、没有 PR，
+      # 它只会产出一行 compare 链接 —— 等于 Release 没有正文，CHANGELOG
+      # 里写的内容根本读不到。改为直接取 CHANGELOG 的本版段落。
+      # 取不到段落/段落为空时回退 --generate-notes，不让发版因此失败。
+      - name: 从 CHANGELOG 取本版 Release 正文
+        run: |
+          node -e 'const fs=require("fs");const ver=require("./manifest.json").version;const lines=fs.readFileSync("CHANGELOG.md","utf8").split(/\r?\n/);const s=lines.findIndex(l=>l.startsWith("## ["+ver+"]"));if(s<0){console.log("CHANGELOG 无 "+ver+" 段落，回退 --generate-notes");process.exit(0);}let e=lines.findIndex((l,i)=>i>s&&l.startsWith("## ["));if(e<0)e=lines.length;const body=lines.slice(s+1,e).join("\n").trim();if(!body){console.log("段落为空，回退 --generate-notes");process.exit(0);}fs.writeFileSync("dist/NOTES.md",body+"\n");console.log("Release 正文取自 CHANGELOG，共 "+body.split("\n").length+" 行");'
+
       - name: 创建 Release 并附上产物
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VER=$(node -e "console.log(require('./manifest.json').version)")
+          NOTES="--generate-notes"
+          if [ -s dist/NOTES.md ]; then NOTES="--notes-file dist/NOTES.md"; fi
           gh release create "$GITHUB_REF_NAME" \
             "dist/video-sniffer-${VER}.zip" dist/SHA256SUMS.txt \
-            --title "v${VER}" \
-            --generate-notes
+            --title "v${VER}" $NOTES
           echo "RELEASE_URL $(gh release view "$GITHUB_REF_NAME" --json url -q .url)"
