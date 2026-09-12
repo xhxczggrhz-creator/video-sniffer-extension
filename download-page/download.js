@@ -148,6 +148,8 @@
   let videoType = params.get('type') || 'direct';
   const videoTrack = params.get('track') || null;    // video | audio（DASH 双轨站点）
   const videoQuality = params.get('quality') || null; // 清晰度（如 1080p）
+  // 画质自选（DASH）：popup 选定的档位高度，0/缺省 = 引擎取最高（原行为）
+  const preferredHeight = parseInt(params.get('preferredHeight') || '0', 10) || 0;
   const isPlayerMode = mode === 'player';
   const isRecordMode = mode === 'record';
   const isBiliMergeMode = mode === 'bili-merge';
@@ -330,6 +332,7 @@
         downloadId: downloadId,
         threadCount: settings.threadCount,  // v4.2.7：尊重用户设定，不再强制最低 12
         maxThreads: 24,
+        preferredHeight: preferredHeight,
         mode: mode,
         referer: videoReferer,
         ...callbacks,

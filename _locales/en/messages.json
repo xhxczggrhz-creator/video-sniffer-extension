@@ -197,6 +197,30 @@
   "popup_rescan_title": {
     "message": "Rescan this page"
   },
+  "popup_btn_quality": {
+    "message": "Quality"
+  },
+  "popup_quality_title": {
+    "message": "Choose quality"
+  },
+  "popup_quality_pick": {
+    "message": "Choose quality…"
+  },
+  "popup_quality_section_video": {
+    "message": "Video quality"
+  },
+  "popup_quality_section_audio": {
+    "message": "Audio quality"
+  },
+  "popup_quality_start": {
+    "message": "Start download"
+  },
+  "popup_quality_loading": {
+    "message": "Reading stream variants…"
+  },
+  "popup_quality_none": {
+    "message": "No selectable variants for this stream"
+  },
   "popup_rescanning": {
     "message": "Rescanning…"
   },

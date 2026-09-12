@@ -3,7 +3,7 @@
   "default_locale": "zh_CN",
   "name": "__MSG_ext_name__",
   "short_name": "__MSG_ext_short_name__",
-  "version": "4.4.2",
+  "version": "4.5.0",
   "description": "__MSG_ext_desc__",
   "author": "VideoSniffer",
   "homepage_url": "https://github.com/xhxczggrhz-creator/video-sniffer-extension",

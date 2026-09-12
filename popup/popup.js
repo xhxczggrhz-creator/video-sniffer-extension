@@ -272,6 +272,11 @@
               </svg>
               <span class="btn-label">${escapeHTML(t('popup_btn_copy'))}</span>
             </button>
+            ${hasQualityOptions(video) ? `
+              <button class="btn btn-copy" data-action="quality" title="${escapeAttr(t('popup_quality_title'))}">
+                <span class="btn-label">${escapeHTML(t('popup_btn_quality'))}</span>
+              </button>
+            ` : ''}
             ${moreBtn}
           ` : isMseType ? `
             ${isMseCapture ? `
@@ -392,7 +397,7 @@
     const isMseAction = action === 'mse-download' || isMseUrl || isBlobUrl;
 
     // 非特殊协议的操作需要 URL 安全校验
-    if (!isMseAction && action !== 'record' && action !== 'more' && !isSafeUrl(video.url)) {
+    if (!isMseAction && action !== 'record' && action !== 'more' && action !== 'quality' && !isSafeUrl(video.url)) {
       showToast(t('popup_err_invalid_url'));
       return;
     }
@@ -405,6 +410,11 @@
     switch (action) {
       case 'more':
         openCopyMenu(btnEl, video);
+        break;
+
+      case 'quality':
+        // 画质/音质自选：B站双轨用后台已存轨道，流媒体抓一次主清单
+        await openQualityMenu(btnEl, video);
         break;
 
       case 'play':
@@ -560,7 +570,9 @@
     copyMenuEls = null;
   }
 
-  function openCopyMenu(btnEl, video) {
+  // 通用浮动菜单：items = [[label, onClick|null], ...]。
+  // onClick 非函数 → 渲染成不可点击的分节标题（画质/音质分组用）。
+  function openMenu(btnEl, items) {
     if (!btnEl) return;
     closeCopyMenu();
 
@@ -570,24 +582,24 @@
 
     const menu = document.createElement('div');
     menu.className = 'copy-menu';
-    const items = [
-      [t('popup_copy_url'), () => video.url],
-      [t('popup_copy_curl'), () => buildCurl(video)],
-      [t('popup_copy_aria2c'), () => buildAria2c(video)],
-      [t('popup_copy_ffmpeg'), () => buildFfmpeg(video)],
-      [t('popup_copy_name'), () => displayName(video)],
-    ];
-    items.forEach(([label, getValue]) => {
+    for (const [label, onClick] of items) {
+      if (typeof onClick !== 'function') {
+        const head = document.createElement('div');
+        head.className = 'copy-menu-header';
+        head.textContent = label;
+        menu.appendChild(head);
+        continue;
+      }
       const b = document.createElement('button');
       b.type = 'button';
       b.textContent = label;
       b.addEventListener('click', (e) => {
         e.stopPropagation();
         closeCopyMenu();
-        copyText(getValue());
+        onClick();
       });
       menu.appendChild(b);
-    });
+    }
 
     document.body.appendChild(backdrop);
     document.body.appendChild(menu);
@@ -604,6 +616,214 @@
     menu.style.top = Math.max(6, top) + 'px';
 
     copyMenuEls = { backdrop, menu };
+  }
+
+  function openCopyMenu(btnEl, video) {
+    const items = [
+      [t('popup_copy_url'), () => video.url],
+      [t('popup_copy_curl'), () => buildCurl(video)],
+      [t('popup_copy_aria2c'), () => buildAria2c(video)],
+      [t('popup_copy_ffmpeg'), () => buildFfmpeg(video)],
+      [t('popup_copy_name'), () => displayName(video)],
+    ].map(([label, getValue]) => [label, () => copyText(getValue())]);
+    if (hasQualityOptions(video)) {
+      items.unshift([t('popup_quality_pick'), () => openQualityMenu(btnEl, video)]);
+    }
+    openMenu(btnEl, items);
+  }
+
+  // ============================================================
+  // 画质 / 音质自选
+  //  · B站等 DASH 双轨条目：嗅探期后台已存下全部轨道
+  //    （service-worker.js 的 biliData.allVideoStreams / allAudioStreams），
+  //    这里直接列选项 —— 零额外请求，选中即换 URL 下载。
+  //  · 通用 HLS/DASH：档位只在主清单里，点选时经 SW 代理抓一次清单文本
+  //    （复用 SW 已验证的裸请求→防盗链补头→超时路径），解析出档位。
+  //    HLS 选中档位的清单地址本身就是可下载地址（引擎零改动）；
+  //    DASH 档位在清单内部，只能把高度作为偏好透传给引擎。
+  // ============================================================
+
+  // 解析 HLS 主清单档位（纯函数：tests/test-stream-variants.js 直接抽出断言）
+  function parseHlsVariants(text, baseUrl) {
+    const out = [];
+    const seen = new Set();
+    const lines = String(text || '').split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!/^#EXT-X-STREAM-INF:/i.test(line)) continue;
+      const attrs = line.slice(line.indexOf(':') + 1);
+      // 紧跟其后的第一个非注释行才是变体地址
+      let uri = '';
+      for (let j = i + 1; j < lines.length; j++) {
+        const cand = lines[j].trim();
+        if (!cand || cand.charAt(0) === '#') continue;
+        uri = cand;
+        break;
+      }
+      if (!uri) continue;
+      let url;
+      // 先按绝对地址解析（不依赖 baseUrl），失败再按主清单地址拼相对路径
+      try { url = new URL(uri).href; }
+      catch {
+        try { url = new URL(uri, baseUrl).href; } catch { continue; }
+      }
+      if (!/^https?:/i.test(url) || seen.has(url)) continue;
+      seen.add(url);
+      // (?:^|,) 锚定：避免把 AVERAGE-BANDWIDTH= 也当成 BANDWIDTH
+      const bw = parseInt((attrs.match(/(?:^|,)\s*BANDWIDTH=(\d+)/i) || [])[1] || '0', 10) || 0;
+      const res = attrs.match(/RESOLUTION=(\d+)x(\d+)/i);
+      const height = res ? Math.min(parseInt(res[1], 10), parseInt(res[2], 10)) : 0;
+      out.push({
+        url,
+        bandwidth: bw,
+        height,
+        label: height ? `${height}P` : (bw ? `${Math.round(bw / 1000)}kbps` : ''),
+      });
+    }
+    // 高→低，与「最高画质排最前」的既有策略一致
+    out.sort((a, b) => (b.height - a.height) || (b.bandwidth - a.bandwidth));
+    return out;
+  }
+
+  // 解析 DASH MPD 档位（popup 有 DOM，用 DOMParser 精确取属性）
+  function parseDashVariants(text) {
+    let doc;
+    try { doc = new DOMParser().parseFromString(String(text || ''), 'application/xml'); }
+    catch { return []; }
+    if (!doc || doc.querySelector('parsererror')) return [];
+    const byHeight = new Map();
+    for (const rep of doc.querySelectorAll('Representation')) {
+      const height = parseInt(rep.getAttribute('height') || '0', 10) || 0;
+      // 只要视频档位：下载引擎也只挑带 height 的 Representation
+      if (!height) continue;
+      const bandwidth = parseInt(rep.getAttribute('bandwidth') || '0', 10) || 0;
+      if (!byHeight.has(height) || (byHeight.get(height).bandwidth || 0) < bandwidth) {
+        byHeight.set(height, {
+          height,
+          bandwidth,
+          label: `${height}P` + (bandwidth ? ` · ${(bandwidth / 1e6).toFixed(1)}Mbps` : ''),
+        });
+      }
+    }
+    return [...byHeight.values()].sort((a, b) => b.height - a.height);
+  }
+
+  // 是否值得给出「画质」入口（避免给纯直链/音频轨加一个点开就空的面板）
+  function hasQualityOptions(video) {
+    if (!video) return false;
+    if ((video.biliData?.allVideoStreams?.length || 0) > 1) return true;
+    if ((video.biliData?.allAudioStreams?.length || 0) > 1) return true;
+    return video.type === 'stream' && !video.track && /\.m3u8|\.mpd/i.test(video.url || '');
+  }
+
+  function videoTrackLabel(s) {
+    const parts = [s.height ? `${s.height}P` : (s.id != null ? String(s.id) : '?')];
+    if (s.bandwidth) parts.push(`${(s.bandwidth / 1e6).toFixed(1)}Mbps`);
+    if (s.codecs) parts.push(s.codecs);
+    return parts.join(' · ');
+  }
+
+  function audioTrackLabel(s) {
+    const parts = [];
+    if (s.bandwidth) parts.push(`${Math.round(s.bandwidth / 1000)}kbps`);
+    // 无损/杜比只能靠 codecs 认（B站 30250=ec-3、30251=flac）
+    if (/flac/i.test(s.codecs || '')) parts.push('FLAC 无损');
+    else if (/ec-3|eac3|ac-3/i.test(s.codecs || '')) parts.push(t('sw_quality_dolby'));
+    else if (s.codecs) parts.push(s.codecs);
+    if (!parts.length && s.id != null) parts.push(String(s.id));
+    return parts.join(' · ');
+  }
+
+  // 用选中轨道替换条目默认轨道。显式选档必须丢掉「标准 MP4 直链」——
+  // 那条直链固定 1080P，且下载页策略 1 会优先用它，会让选择失效。
+  function withBiliChoice(video, vTrack, aTrack) {
+    const bd = { ...(video.biliData || {}) };
+    if (vTrack) {
+      bd.videoUrl = vTrack.url;
+      bd.videoBackupUrl = vTrack.backupUrl || '';
+      bd.videoCodecs = vTrack.codecs || '';
+      bd.videoWidth = vTrack.width || 0;
+      bd.videoHeight = vTrack.height || 0;
+      bd.videoBandwidth = vTrack.bandwidth || 0;
+    }
+    if (aTrack) {
+      bd.audioUrl = aTrack.url;
+      bd.audioBackupUrl = aTrack.backupUrl || '';
+      bd.audioCodecs = aTrack.codecs || '';
+      bd.audioBandwidth = aTrack.bandwidth || 0;
+    }
+    bd.directUrl = '';
+    bd.directSize = 0;
+    return {
+      ...video,
+      biliData: bd,
+      quality: vTrack?.height ? `${vTrack.height}P` : video.quality,
+    };
+  }
+
+  async function openQualityMenu(btnEl, video) {
+    const bd = video?.biliData || {};
+    const vTracks = [...(bd.allVideoStreams || [])].sort((a, b) =>
+      ((b.height || 0) - (a.height || 0)) || ((b.bandwidth || 0) - (a.bandwidth || 0)));
+    const aTracks = [...(bd.allAudioStreams || [])].sort((a, b) =>
+      (b.bandwidth || 0) - (a.bandwidth || 0));
+
+    // ---- 双轨条目：后台已有全部轨道，勾选后一键下载 ----
+    if (vTracks.length > 1 || aTracks.length > 1) {
+      const cur = { v: bd.videoUrl || '', a: bd.audioUrl || '' };
+      const render = () => {
+        const items = [[t('popup_quality_section_video'), null]];
+        for (const s of vTracks) {
+          const mark = cur.v && s.url === cur.v ? '✓ ' : '　';
+          items.push([mark + videoTrackLabel(s), () => { cur.v = s.url; render(); }]);
+        }
+        if (aTracks.length > 1) {
+          items.push([t('popup_quality_section_audio'), null]);
+          for (const s of aTracks) {
+            const mark = cur.a && s.url === cur.a ? '✓ ' : '　';
+            items.push([mark + audioTrackLabel(s), () => { cur.a = s.url; render(); }]);
+          }
+        }
+        items.push([t('popup_quality_start'), () => {
+          handleAction('bili-merge-download',
+            withBiliChoice(video, vTracks.find(s => s.url === cur.v), aTracks.find(s => s.url === cur.a)),
+            btnEl);
+        }]);
+        openMenu(btnEl, items);
+      };
+      render();
+      return;
+    }
+
+    // ---- 通用 HLS/DASH：抓一次主清单，列出档位 ----
+    if (video.type !== 'stream' || !/\.m3u8|\.mpd/i.test(video.url || '')) return;
+    showToast(t('popup_quality_loading'));
+    const r = await safeSend({
+      type: 'proxy-fetch-text',
+      url: video.url,
+      referer: video.referer || currentTabUrl,
+    });
+    const text = r?.data?.text ?? r?.text;
+    if (!text) { showToast(r?.error || t('popup_quality_none')); return; }
+
+    const isDash = /\.mpd/i.test(video.url);
+    const list = isDash ? parseDashVariants(text) : parseHlsVariants(text, video.url);
+    if (list.length < 2) { showToast(t('popup_quality_none')); return; }
+
+    const items = [[t('popup_quality_section_video'), null]];
+    for (const v of list) {
+      const label = `${v.label}${v.bandwidth ? ` · ${(v.bandwidth / 1e6).toFixed(1)}Mbps` : ''}`;
+      items.push([label, () => {
+        if (v.url) {
+          // HLS：档位清单本身就是可下载地址，引擎按媒体清单正常处理
+          handleAction('download', { ...video, url: v.url, quality: v.label }, btnEl);
+        } else {
+          // DASH：档位在清单内部，把高度作为偏好透传给引擎
+          handleAction('download', { ...video, preferredHeight: v.height, quality: v.label }, btnEl);
+        }
+      }]);
+    }
+    openMenu(btnEl, items);
   }
 
   async function copyText(text) {
@@ -630,7 +850,8 @@
       statusDot.classList.add('scanning');
       statusText.textContent = t('popup_rescanning');
 
-      chrome.tabs.sendMessage(currentTabId, { type: 'manual-scan' }).catch?.(() => {});
+      // 真正的重扫：后台先清空该页记录，再让内容脚本从零嗅探
+      chrome.runtime.sendMessage({ type: 'rescan-page', tabId: currentTabId }).catch?.(() => {});
 
       clearTimeout(scanTimeout);
       scanTimeout = setTimeout(loadVideos, 1500);

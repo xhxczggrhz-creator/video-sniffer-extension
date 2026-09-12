@@ -1741,6 +1741,18 @@ const MessageHandlers = {
     return { cleared: true };
   },
 
+  // 真正的「重新嗅探本页」：先清空该页记录，再让内容脚本从零扫一遍。
+  // 旧版只转发 manual-scan，重报的同一批 URL 在 addDetectedVideo 被去重，
+  // 列表纹丝不动 —— 用户看到的就是"点了没反应"。
+  // 只清视频列表、不动 cookie 快照（下载防盗链头仍可复用）。
+  'rescan-page': async (msg, sender) => {
+    const tabId = msg.tabId ?? sender.tab?.id;
+    if (!Number.isInteger(tabId) || tabId <= 0) return { ok: false };
+    await MessageHandlers['clear-videos']({ tabId });
+    await chrome.tabs.sendMessage(tabId, { type: 'manual-scan' }).catch?.(() => {});
+    return { ok: true };
+  },
+
   'get-download-status': async (msg) => {
     return STATE.activeDownloads[msg.downloadId] || null;
   },
@@ -2635,7 +2647,10 @@ async function startDownload(video, mode, referer, sourceTabId) {
     `&size=${video.size || 0}` +
     `&type=${video.type || 'direct'}` +
     (video.track ? `&track=${encodeURIComponent(video.track)}` : '') +
-    (video.quality ? `&quality=${encodeURIComponent(video.quality)}` : '');
+    (video.quality ? `&quality=${encodeURIComponent(video.quality)}` : '') +
+    // 画质自选（DASH）：popup 里选定的档位高度。缺省不带 = 引擎维持
+    // "取最高 Representation" 的原行为。
+    (video.preferredHeight ? `&preferredHeight=${encodeURIComponent(video.preferredHeight)}` : '');
 
   const tab = await createTabAdjacent(pageUrl, sourceTabId);
   if (STATE.activeDownloads[downloadId]) {
@@ -2795,7 +2810,8 @@ restoreState();
 
 chrome.contextMenus.onClicked.addListener(safe(async (info, tab) => {
   if (info.menuItemId === 'sniff-videos' && tab?.id) {
-    await chrome.tabs.sendMessage(tab.id, { type: 'manual-scan' }).catch?.(() => {});
+    // 与 popup「重新扫描」同一条路径：先清该页记录再重扫
+    await MessageHandlers['rescan-page']({ tabId: tab.id });
   }
 }));
 

@@ -197,6 +197,30 @@
   "popup_rescan_title": {
     "message": "重新扫描页面"
   },
+  "popup_btn_quality": {
+    "message": "画质"
+  },
+  "popup_quality_title": {
+    "message": "选择画质/音质"
+  },
+  "popup_quality_pick": {
+    "message": "选择画质/音质…"
+  },
+  "popup_quality_section_video": {
+    "message": "画质（视频轨）"
+  },
+  "popup_quality_section_audio": {
+    "message": "音质（音频轨）"
+  },
+  "popup_quality_start": {
+    "message": "开始下载"
+  },
+  "popup_quality_loading": {
+    "message": "正在读取流清单档位…"
+  },
+  "popup_quality_none": {
+    "message": "该流没有可选档位"
+  },
   "popup_rescanning": {
     "message": "正在重新扫描…"
   },
